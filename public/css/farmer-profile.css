@@ -1,0 +1,123 @@
+:root {
+    --primary-green: #4CAF50;
+    --primary-dark: #388E3C;
+    --text-dark: #333;
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition-fast: 0.3s ease;
+}
+
+.profile-setup-container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: var(--shadow-md);
+}
+
+.profile-setup-title {
+    color: var(--primary-green);
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2rem;
+}
+
+.step-container {
+    display: none;
+    animation: fadeIn 0.5s;
+}
+
+.step-container.active {
+    display: block;
+}
+
+.progress-bar {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 auto 40px;
+    max-width: 400px;
+    position: relative;
+}
+
+.progress-step {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    color: var(--text-dark);
+    position: relative;
+    z-index: 1;
+}
+
+.progress-step.active {
+    background-color: var(--primary-green);
+    color: white;
+}
+
+.progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 2px;
+    width: 100%;
+    background-color: #f5f5f5;
+    z-index: 0;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 2px;
+    background-color: var(--primary-green);
+    z-index: 0;
+    transition: width 0.3s ease;
+}
+
+/* Add progress bar step indicators */
+.progress-bar[data-step="1"]::after { width: 0%; }
+.progress-bar[data-step="2"]::after { width: 33%; }
+.progress-bar[data-step="3"]::after { width: 66%; }
+.progress-bar[data-step="4"]::after { width: 100%; }
+
+/* Form styling */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.input-group {
+    position: relative;
+}
+
+.input-group-text {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Add more CSS as needed */ 

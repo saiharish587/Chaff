@@ -1,0 +1,3245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Farmer Dashboard</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="icon" type="image/png" href="../assests/logo_green.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden; /* Prevent horizontal scroll */
+        overflow-y: hidden; /* Prevent vertical scroll */
+        background: linear-gradient(
+          135deg,
+          #f5f6fa 0%,
+          #e9ecef 100%
+        ); /* Subtle gradient for depth */
+        font-family: 'Poppins', 'Inter', Arial, sans-serif;
+      }
+
+      .dashboard-layout {
+        display: flex;
+        min-height: 100vh;
+        background: transparent;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      .welcome-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background-color: white;
+        border-radius: 16px; /* Softer corners */
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); /* Deeper shadow for elevation */
+        transform: translateY(0);
+        opacity: 1;
+        animation: fadeInUp 0.6s ease-out; /* Entrance animation */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .welcome-section:hover {
+        transform: translateY(-5px); /* Lift effect on hover */
+        box-shadow: 0 12px 32px rgba(76, 175, 80, 0.15); /* Enhanced shadow on hover */
+      }
+
+      .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px; /* Increased spacing for clarity */
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background-color: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        transform: translateY(0);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(
+          90deg,
+          var(--primary-green),
+          #388e3c
+        ); /* Gradient top border */
+      }
+
+      .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 28px rgba(76, 175, 80, 0.2);
+      }
+
+      .stat-card h3 {
+        color: var(--primary-green);
+        margin-top: 0;
+        font-size: 1.3rem; /* Slightly larger for emphasis */
+      }
+
+      .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: rgba(245, 246, 250, 0.8);
+      }
+
+      .spinner {
+        border: 5px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-top: 5px solid var(--primary-green);
+        width: 60px;
+        height: 60px;
+        animation: spin 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; /* Smoother spin */
+        margin-bottom: 20px;
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.3); /* Glow effect */
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error-message {
+        text-align: center;
+        color: #dc3545;
+        margin-top: 20px;
+        display: none;
+        font-weight: 500;
+        animation: shake 0.4s ease-in-out; /* Shake on error display */
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-10px);
+        }
+        75% {
+          transform: translateX(10px);
+        }
+      }
+
+      .btn-signout {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-signout:hover {
+        background-color: #e2e6ea;
+        transform: translateY(-2px);
+        color: #d32f2f;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-signout::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.6s ease, height 0.6s ease;
+      }
+
+      .btn-signout:hover::after {
+        width: 200%;
+        height: 200%;
+      }
+
+      .btn-primary {
+        background: var(--primary-green, #4caf50);
+        color: #fff;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        margin: 10px 0;
+        transition: all 0.3s ease;
+        position: relative;
+        font-weight: 600;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+      }
+
+      .btn-primary:hover {
+        background: #388e3c;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
+      }
+
+      .btn-primary:disabled {
+        background: #a5d6a7;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .btn-primary::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: -50%;
+        width: 0;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: rotate(45deg) translateY(-50%);
+        transition: width 0.4s ease;
+      }
+
+      .btn-primary:hover::after {
+        width: 200%;
+      }
+      
+      .btn-secondary {
+        background: #f5f5f5;
+        color: #555;
+        border: 1px solid #ddd;
+        padding: 12px 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        margin: 10px 0;
+        transition: all 0.3s ease;
+        position: relative;
+        font-weight: 600;
+        overflow: hidden;
+      }
+      
+      .btn-secondary:hover {
+        background: #e0e0e0;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .dashboard-actions {
+        text-align: right;
+        margin-bottom: 20px;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1001;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px); /* Adds a blur effect to background */
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .modal-content {
+        background: #fff;
+        margin: 5% auto;
+        padding: 30px 20px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 400px;
+        position: relative;
+        transform: scale(0.9);
+        opacity: 0;
+        animation: modalPop 0.4s ease-out forwards;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      @keyframes modalPop {
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .close {
+        color: #aaa;
+        position: absolute;
+        right: 20px;
+        top: 10px;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.2s, transform 0.2s;
+      }
+
+      .close:hover {
+        color: #000;
+        transform: rotate(90deg); /* Rotate on hover for interactivity */
+      }
+
+      .success-message {
+        color: #4caf50;
+        margin: 10px 0;
+        animation: bounceIn 0.5s ease-out; /* Bounce effect for success */
+      }
+
+      .error-message {
+        color: #f44336;
+        margin: 10px 0;
+        animation: shake 0.4s ease-in-out;
+      }
+
+      /* Profile Upload Styling */
+      .profile-image-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+        position: relative;
+      }
+      
+      .profile-image-container {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        border: 4px solid #fff;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      
+      .profile-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+      
+      .profile-image-container:hover img {
+        transform: scale(1.1);
+      }
+      
+      .profile-image-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 10px 0;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      
+      .profile-image-container:hover .profile-image-overlay {
+        opacity: 1;
+      }
+      
+      .change-photo-btn {
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+      }
+      
+      .change-photo-btn i {
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+      }
+      
+      .change-photo-btn:hover {
+        transform: scale(1.1);
+      }
+
+      /* Form Styling */
+      form label {
+        display: block;
+        margin: 12px 0 4px;
+        font-weight: 500;
+        color: #444;
+      }
+
+      form input,
+      form select,
+      form textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        box-sizing: border-box;
+        margin-bottom: 5px;
+        transition: all 0.2s ease;
+        background: #fafafa; /* Subtle background */
+      }
+
+      form input:focus,
+      form select:focus,
+      form textarea:focus {
+        border-color: var(--primary-green);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2); /* Focus ring */
+        background: #fff;
+      }
+
+      .profile-upload-container {
+        position: relative;
+        display: inline-block;
+      }
+
+      .upload-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        backdrop-filter: blur(3px); /* Subtle blur */
+      }
+
+      .profile-image-wrapper:hover .upload-overlay {
+        opacity: 1;
+        transform: scale(1.02); /* Slight zoom */
+      }
+
+      .upload-success {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4caf50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 6px;
+        box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+        transform: translateY(-100px);
+        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bounce effect */
+        z-index: 1000;
+        font-weight: 500;
+      }
+
+      .upload-success.show {
+        transform: translateY(0);
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.08);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .profile-image-success {
+        animation: pulse 1.2s ease-in-out;
+        box-shadow: 0 0 0 5px rgba(76, 175, 80, 0.5);
+      }
+      
+      /* Upload notification styles */
+      .upload-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-100px);
+        opacity: 0;
+        transition: transform 0.4s ease, opacity 0.4s ease;
+      }
+      
+      .upload-notification.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      
+      .upload-notification.success {
+        background-color: #4caf50;
+      }
+      
+      .upload-notification.error {
+        background-color: #f44336;
+      }
+      
+      .upload-notification i {
+        font-size: 1.2rem;
+      }
+      
+      .upload-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      .upload-loading i {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+      }
+
+      /* --- Sidebar --- */
+      .sidebar {
+        width: 250px;
+        background: #fff;
+        box-shadow: 2px 0 16px rgba(0,0,0,0.07);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 32px 0 24px 0;
+        min-height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 2000;
+        transition: left 0.3s cubic-bezier(.68,-0.55,.27,1.55);
+        gap: 32px;
+        overflow-y: auto;
+      }
+
+      .sidebar-profile img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #4caf50;
+        box-shadow: 0 4px 12px rgba(76,175,80,0.3);
+      }
+
+      .sidebar-nav {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .sidebar-btn {
+        background: none;
+        border: none;
+        color: #333;
+        font-size: 1.1rem;
+        padding: 14px 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        width: 180px;
+        text-align: left;
+        transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .sidebar-btn.active,
+      .sidebar-btn:hover {
+        background: #4caf50;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(76,175,80,0.15);
+        transform: translateX(5px);
+      }
+
+      .signout-btn {
+        margin-top: 32px;
+        background: #f8f9fa;
+        color: #d32f2f;
+        border: 1px solid #eee;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+
+      .signout-btn:hover {
+        background: #ffeaea;
+        color: #b71c1c;
+      }
+
+      .sidebar-close {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        color: #555;
+        cursor: pointer;
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        transition: transform 0.2s, color 0.2s;
+      }
+
+      .sidebar-close:hover {
+        color: #4caf50;
+        transform: rotate(180deg);
+      }
+
+      /* --- Main Content --- */
+      .main-content {
+        flex: 1;
+        padding: 48px 16px 40px 16px;
+        min-width: 0;
+        position: relative;
+        box-sizing: border-box;
+        background: transparent;
+        overflow-y: auto;
+        height: 100vh; /* Ensure it fits viewport */
+        margin-left: 250px; /* Added margin for desktop */
+      }
+
+      .notification-bar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 16px;
+        position: relative;
+      }
+
+      .notification-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #555;
+        cursor: pointer;
+        position: relative;
+        transition: transform 0.2s ease, color 0.2s ease;
+      }
+
+      .notification-btn:hover {
+        transform: scale(1.2); /* Pulse effect */
+        color: var(--primary-green);
+      }
+
+      .dashboard-section {
+        margin-bottom: 40px;
+        animation: fadeIn 0.6s ease-out; /* Smooth entrance */
+      }
+
+      .dashboard-section h2 {
+        font-size: 2rem;
+        margin-bottom: 24px;
+        color: #333;
+        letter-spacing: 0.5px;
+        font-weight: 700;
+        position: relative;
+      }
+
+      .dashboard-section h2::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background: var(--primary-green); /* Underline accent */
+      }
+
+      .overview-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px; /* or 20px, or whatever you like */
+        justify-content: center;
+        margin-bottom: 24px;
+        width: 100%;
+        max-width: 100vw;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0 2vw;
+        box-sizing: border-box;
+      }
+
+      .overview-card {
+        box-sizing: border-box;
+        min-width: 140px;
+        max-width: 220px;
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.08);
+        border: 1px solid #e0e0e0;
+        padding: 20px 16px;
+        text-align: center;
+        margin-bottom: 0;
+        transition: box-shadow 0.2s, transform 0.2s;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .overview-card:hover {
+        box-shadow: 0 10px 30px rgba(76, 175, 80, 0.2);
+        transform: translateY(-5px) scale(1.03);
+      }
+
+      .overview-card h3 {
+        font-size: 1.05rem;
+        margin: 0 0 8px 0;
+        color: #219150;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+
+      .overview-card p {
+        font-size: 1.3rem;
+        margin: 0;
+        font-weight: 700;
+        color: #222;
+        line-height: 1.2;
+      }
+
+      .overview-card:hover p {
+        transform: scale(1.1); /* Number animation on hover */
+      }
+
+      .overview-chart {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        padding: 32px;
+        margin-bottom: 40px;
+        animation: fadeIn 0.8s ease-out;
+        transition: box-shadow 0.3s ease;
+      }
+
+      .overview-chart:hover {
+        box-shadow: 0 10px 30px rgba(76, 175, 80, 0.15);
+      }
+
+      #transactions-chart {
+        width: 100% !important;
+        max-width: 700px;
+        height: 320px !important;
+        display: block;
+        margin: 0 auto;
+      }
+
+      /* Keyframes for Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes bounceIn {
+        0% {
+          transform: scale(0.3);
+          opacity: 0;
+        }
+        50% {
+          transform: scale(1.05);
+          opacity: 0.8;
+        }
+        70% {
+          transform: scale(0.95);
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      /* Hamburger menu button (hidden on desktop) */
+      .hamburger {
+        display: none;
+        position: fixed;
+        top: 18px;
+        left: 18px;
+        z-index: 2100;
+        background: none;
+        border: none;
+        font-size: 2rem;
+        color: #333;
+        cursor: pointer;
+        transition: transform 0.2s, color 0.2s;
+      }
+
+      .hamburger:hover {
+        color: #4caf50;
+        transform: rotate(180deg);
+      }
+
+      /* Sidebar overlay for mobile */
+      .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.25);
+        z-index: 1999;
+        transition: opacity 0.3s;
+      }
+
+      .sidebar-backdrop.active {
+        display: block;
+        opacity: 1;
+      }
+
+      /* Responsive */
+      @media (max-width: 900px) {
+        .sidebar {
+          left: -260px;
+          transition: left 0.3s cubic-bezier(.68,-0.55,.27,1.55);
+        }
+        .sidebar.open {
+          left: 0;
+          box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+        }
+        .sidebar-close {
+          display: block;
+        }
+        .hamburger {
+          display: block;
+        }
+        .dashboard-layout {
+          padding-left: 0;
+        }
+        .main-content {
+          padding: 18px 2vw;
+          width: 100vw;
+          margin-left: 0; /* Removed margin for mobile */
+        }
+        .overview-cards {
+          max-width: 100vw;
+          padding: 0 2vw;
+          overflow-x: hidden;
+        }
+        .overview-card {
+          min-width: 120px;
+          max-width: 48vw;
+        }
+        .overview-card h3 {
+          font-size: 0.93rem;
+          margin-bottom: 4px;
+        }
+        .overview-card p {
+          font-size: 1.05rem;
+        }
+        .overview-chart {
+          padding: 12px;
+        }
+        .dashboard-section {
+          margin-bottom: 24px;
+        }
+        .hamburger.hide-when-sidebar-open {
+          display: none !important;
+        }
+      }
+
+      /* --- Extra Small Devices --- */
+      @media (max-width: 600px) {
+        .sidebar {
+          width: 100vw;
+          left: -100vw;
+        }
+        .sidebar.open {
+          left: 0;
+        }
+        .sidebar-btn, .signout-btn {
+          width: 90%;
+          font-size: 1.05rem;
+          border-radius: 8px;
+        }
+        .main-content {
+          padding: 10px 2vw;
+        }
+        .overview-card {
+          min-width: 90px;
+          max-width: 98vw;
+        }
+        .overview-card h3 {
+          font-size: 0.93rem;
+        }
+        .overview-card p {
+          font-size: 1rem;
+        }
+      }
+
+      /* Add this for desktop: main content is pushed right */
+      @media (min-width: 901px) {
+        .main-content {
+          margin-left: 250px; /* width of sidebar */
+        }
+      }
+
+      /* On mobile, remove the margin */
+      @media (max-width: 900px) {
+        .main-content {
+          margin-left: 0;
+        }
+      }
+
+      .field-error {
+        color: #d32f2f;
+        font-size: 0.95em;
+        margin-bottom: 8px;
+        min-height: 18px;
+      }
+      .custom-file-label {
+        display: inline-block;
+        background: #4caf50;
+        color: #fff;
+        padding: 10px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-bottom: 12px;
+        transition: background 0.2s;
+      }
+      .custom-file-label:hover {
+        background: #388e3c;
+      }
+      #choose-files-btn {
+        pointer-events: none;
+      }
+      .image-preview-list {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      .image-preview-list .img-preview {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid #eee;
+        background: #fafafa;
+      }
+      .image-preview-list img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .image-preview-list .remove-img {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background: #f44336;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        font-size: 1em;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        transition: background 0.2s;
+      }
+      .image-preview-list .remove-img:hover {
+        background: #b71c1c;
+      }
+      .stubble-list {
+        margin-top: 24px;
+      }
+      .stubble-item {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(76,175,80,0.08);
+        padding: 18px 16px;
+        margin-bottom: 16px;
+        position: relative;
+      }
+      .stubble-item .remove-stubble {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: #f44336;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 0.95em;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .stubble-item .remove-stubble:hover {
+        background: #b71c1c;
+      }
+
+      /* For very small screens, make sure cards don't overflow */
+      @media (max-width: 420px) {
+        .overview-card {
+          min-width: 90px;
+          max-width: 98vw;
+          padding: 8px 2px;
+        }
+      }
+
+      .notification-badge {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        color: #e53935;         /* Red color for the number */
+        background: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        font-size: 0.5em;
+        font-weight: bold;
+        min-width: 0;
+        height: auto;
+        padding: 0;
+        line-height: 1;
+        display: none;
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      .notification-dropdown {
+        position: absolute;
+        right: 0;
+        top: 36px;
+        width: 320px;
+        max-height: 340px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+        z-index: 100;
+        overflow: hidden;
+        display: none;
+        flex-direction: column;
+        animation: fadeIn 0.2s;
+      }
+
+      .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #eee;
+        font-weight: 600;
+        background: #f5f6fa;
+      }
+
+      .notification-list {
+        max-height: 260px;
+        overflow-y: auto;
+        padding: 0 0 8px 0;
+      }
+
+      .notification-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 14px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 1em;
+        color: #333;
+        background: #fff;
+        transition: background 0.2s;
+        border-radius: 0;
+      }
+
+      .notification-item.unread {
+        background: #f7fdf7;
+        font-weight: 600;
+      }
+
+      .notification-item button.remove-notification {
+        background: none;
+        border: none;
+        color: #d32f2f;
+        font-size: 1.1em;
+        cursor: pointer;
+        margin-left: 8px;
+        padding: 0 4px;
+        border-radius: 50%;
+        transition: background 0.2s;
+      }
+
+      .notification-item button.remove-notification:hover {
+        background: #ffeaea;
+      }
+      
+      /* Edit Profile Form Styles */
+      .edit-profile-form {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      
+      .form-section {
+        background-color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+      
+      .form-section h3 {
+        color: var(--primary-green);
+        margin-top: 0;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+      }
+      
+      .form-group {
+        margin-bottom: 20px;
+      }
+      
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #444;
+      }
+      
+      .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 16px;
+        transition: all 0.2s ease;
+      }
+      
+      .form-control:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        outline: none;
+      }
+      
+      .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 24px;
+        margin-bottom: 24px;
+      }
+      
+      .message-container {
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+      }
+      
+      .message-container.success {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #a5d6a7;
+        display: block;
+      }
+      
+      .message-container.error {
+        background-color: #ffebee;
+        color: #c62828;
+        border: 1px solid #ef9a9a;
+        display: block;
+      }
+      
+      .coordinates-group {
+        display: flex;
+        gap: 10px;
+      }
+      
+      .coordinates-group input {
+        flex: 1;
+      }
+      
+      .coordinates-display {
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 5px;
+      }
+      
+      .crops-checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+        margin-top: 5px;
+      }
+      
+      .crop-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      .crop-checkbox input[type="checkbox"] {
+        width: auto;
+        margin: 0;
+      }
+      
+      .crop-checkbox label {
+        margin: 0;
+        font-weight: normal;
+        cursor: pointer;
+      }
+
+      /* Stylish Orders Table */
+      .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 18px;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(76,175,80,0.08);
+        font-size: 1rem;
+      }
+      .orders-table th, .orders-table td {
+        padding: 12px 10px;
+        text-align: left;
+      }
+      .orders-table th {
+        background: #e8f5e9;
+        color: #219150;
+        font-weight: 600;
+        border-bottom: 2px solid #c8e6c9;
+      }
+      .orders-table tr:nth-child(even) {
+        background: #f7fdf7;
+      }
+      .orders-table tr:nth-child(odd) {
+        background: #fff;
+      }
+      .orders-table td {
+        border-bottom: 1px solid #f0f0f0;
+      }
+      .orders-table tr:last-child td {
+        border-bottom: none;
+      }
+      @media (max-width: 700px) {
+        .orders-table, .orders-table thead, .orders-table tbody, .orders-table th, .orders-table td, .orders-table tr {
+          display: none !important;
+        }
+        .order-card-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          margin-top: 18px;
+        }
+        .order-card {
+          background: #fff;
+          border-radius: 12px;
+          box-shadow: 0 2px 8px rgba(76,175,80,0.08);
+          padding: 16px 14px;
+          font-size: 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          border-left: 5px solid #4caf50;
+          position: relative;
+        }
+        .order-card .order-status {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          font-size: 0.95em;
+          padding: 2px 10px;
+          border-radius: 6px;
+          font-weight: 600;
+          background: #e8f5e9;
+          color: #388e3c;
+        }
+        .order-card .order-status.pending,
+        .order-card .order-status.placed {
+          background: #fffde7;
+          color: #fbc02d;
+        }
+        .order-card .order-status.completed {
+          background: #e8f5e9;
+          color: #388e3c;
+        }
+        .order-card .order-label {
+          font-weight: 600;
+          color: #219150;
+          margin-right: 6px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="hamburger" id="sidebar-toggle" aria-label="Open sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+    <div id="dashboard-container" style="display:none;">
+    <div class="dashboard-layout">
+      <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+          <button class="sidebar-close" id="sidebar-close" aria-label="Close sidebar">
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="sidebar-greeting" style="margin-bottom: 10px; font-size: 1.1em; font-weight: 500; color: #388e3c; text-align: center;">
+          <!-- Greeting will be set by JS -->
+          <span id="sidebar-greeting">Hello!</span>
+        </div>
+        <div class="sidebar-profile">
+            <img id="sidebar-profile-image" src="https://ui-avatars.com/api/?name=User" alt="Profile" />
+        </div>
+        <nav class="sidebar-nav">
+            <button id="nav-overview" class="sidebar-btn active"><i class="fas fa-home"></i> Overview</button>
+            <button id="nav-stubble" class="sidebar-btn"><i class="fas fa-leaf"></i> Stubble</button>
+            <button id="nav-orders" class="sidebar-btn"><i class="fas fa-shopping-cart"></i> Orders</button>
+            <button id="nav-edit-profile" class="sidebar-btn"><i class="fas fa-user-edit"></i> Edit Profile</button>
+            <button id="sidebar-signout" class="sidebar-btn signout-btn"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Notification Bell -->
+        <div class="notification-bar">
+          <button id="notification-btn" class="notification-btn" style="position:relative;">
+            <i class="fas fa-bell"></i>
+            <span id="notification-badge" class="notification-badge" style="display:none;">0</span>
+          </button>
+          <div id="notification-dropdown" class="notification-dropdown" style="display:none;">
+            <div class="notification-header">
+              <span>Notifications</span>
+              <button id="mark-all-read" class="btn-primary" style="font-size:0.9em;padding:4px 10px;">Mark all as read</button>
+            </div>
+            <div id="notification-list" class="notification-list"></div>
+          </div>
+        </div>
+
+        <!-- Overview Section -->
+        <section id="section-overview" class="dashboard-section">
+          <h2>Overview</h2>
+          <div class="overview-cards">
+            <div class="overview-card">
+              <h3>Total Stubble Sold</h3>
+              <p><span id="total-stubble-sold">--</span> tons</p>
+            </div>
+            <div class="overview-card">
+              <h3>Total Available Stubble for Sale</h3>
+              <p><span id="total-stubble-available">--</span> tons</p>
+            </div>
+            <div class="overview-card">
+              <h3>Total Earnings</h3>
+              <p id="total-earnings">₹--</p>
+            </div>
+            <div class="overview-card">
+              <h3>Total Orders</h3>
+              <p id="total-orders">--</p>
+            </div>
+          </div>
+          <div class="overview-chart">
+            <!-- Chart.js or similar chart will be rendered here -->
+            <canvas id="transactions-chart"></canvas>
+          </div>
+        </section>
+
+        <!-- Stubble Section -->
+        <section
+          id="section-stubble"
+          class="dashboard-section"
+          style="display: none"
+        >
+          <h2>Stubble</h2>
+          <button id="open-stubble-upload" class="btn-primary">
+            <i class="fas fa-plus"></i> Upload Stubble
+          </button>
+            <div id="stubble-list" class="stubble-list"></div>
+        </section>
+
+        <!-- Orders Section -->
+        <section
+          id="section-orders"
+          class="dashboard-section"
+          style="display: none"
+        >
+          <h2>Orders</h2>
+          <p>Orders functionality coming soon.</p>
+        </section>
+
+        <!-- Edit Profile Section -->
+        <section
+          id="section-edit-profile"
+          class="dashboard-section"
+          style="display: none"
+        >
+          <h2>Edit Profile</h2>
+          <div class="edit-profile-form">
+            <div class="profile-image-wrapper">
+              <div class="profile-image-container">
+                <img
+                  id="profile-image"
+                  src="../assests/default-profile.png"
+                  alt="Profile Image"
+                />
+                <div class="profile-image-overlay">
+                  <label for="profile-photo-input" class="change-photo-btn">
+                    <i class="fas fa-camera"></i>
+                    <span>Change Photo</span>
+                  </label>
+                </div>
+              </div>
+              <input
+                type="file"
+                id="profile-photo-input"
+                accept="image/*"
+                style="display: none"
+              />
+            </div>
+            
+            <form id="edit-profile-form">
+              <!-- Personal Information -->
+              <div class="form-section">
+                <h3>Personal Information</h3>
+                <div class="form-group">
+                  <label for="edit-fullname">Full Name</label>
+                  <input type="text" id="edit-fullname" name="fullName" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                  <label for="edit-dob">Date of Birth</label>
+                  <input type="date" id="edit-dob" name="dateOfBirth" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                  <label for="edit-mobile">Mobile Number</label>
+                  <div class="phone-input-group">
+                    <span class="country-code">+91</span>
+                    <input type="text" id="edit-mobile" name="mobileNumber" class="form-control phone-number" maxlength="10" pattern="[6-9]\d{9}" required>
+                  </div>
+                  <div class="error-message" id="edit-mobile-error"></div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="edit-language">Preferred Language</label>
+                  <select id="edit-language" name="preferredLanguage" class="form-control" required>
+                    <option value="">Select Language</option>
+                    <option value="bengali">Bengali - বাংলা</option>
+                    <option value="gujarati">Gujarati - ગુજરાતી</option>
+                    <option value="hindi">Hindi - हिंदी</option>
+                    <option value="kannada">Kannada - ಕನ್ನಡ</option>
+                    <option value="kashmiri">Kashmiri - کٲشُر</option>
+                    <option value="konkani">Konkani - कोंकणी</option>
+                    <option value="malayalam">Malayalam - മലയാളം</option>
+                    <option value="manipuri">Manipuri - মৈতৈলোন্</option>
+                    <option value="marathi">Marathi - मराठी</option>
+                    <option value="nepali">Nepali - नेपाली</option>
+                    <option value="odia">Odia - ଓଡ଼ିଆ</option>
+                    <option value="punjabi">Punjabi - ਪੰਜਾਬੀ</option>
+                    <option value="sanskrit">Sanskrit - संस्कृतम्</option>
+                    <option value="sindhi">Sindhi - سنڌي</option>
+                    <option value="tamil">Tamil - தமிழ்</option>
+                    <option value="telugu">Telugu - తెలుగు</option>
+                    <option value="urdu">Urdu - اردو</option>
+                    <option value="english">English</option>
+                  </select>
+                </div>
+              </div>
+              
+              <!-- Location Information -->
+              <div class="form-section">
+                <h3>Location Information</h3>
+                <div class="form-group">
+                  <label for="edit-state">State</label>
+                  <select id="edit-state" name="state" class="form-control" required>
+                    <option value="">Select State</option>
+                    <!-- States will be populated from API -->
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label for="edit-district">District</label>
+                  <select id="edit-district" name="district" class="form-control" required>
+                    <option value="">Select District</option>
+                    <!-- Districts will be populated based on state selection -->
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label for="edit-village">Village/Town</label>
+                  <input type="text" id="edit-village" name="village" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                  <label for="edit-pincode">Pincode</label>
+                  <input type="text" id="edit-pincode" name="pincode" class="form-control" pattern="[0-9]{6}" maxlength="6" required>
+                  <div class="error-message" id="edit-pincode-error"></div>
+                </div>
+                
+                <div class="form-group">
+                  <label>Coordinates (Optional)</label>
+                  <div class="coordinates-group">
+                    <input type="text" id="edit-coordinates" name="coordinates" readonly placeholder="Latitude, Longitude" class="form-control">
+                    <button type="button" id="edit-get-location-btn" class="btn btn-secondary">
+                      <i class="fas fa-map-marker-alt"></i> Get Location
+                    </button>
+                  </div>
+                  <div id="edit-coordinates-status" class="coordinates-display"></div>
+                </div>
+              </div>
+              
+              <!-- Farm Information -->
+              <div class="form-section">
+                <h3>Farm Information</h3>
+                <div class="form-group">
+                  <label for="edit-soil-type">Soil Type</label>
+                  <select id="edit-soil-type" name="soilType" class="form-control" required>
+                    <option value="">Select Soil Type</option>
+                    <option value="alluvial">Alluvial Soil</option>
+                    <option value="black">Black Soil</option>
+                    <option value="red">Red Soil</option>
+                    <option value="laterite">Laterite Soil</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label>Types of Crops Grown</label>
+                  <div class="crops-checkbox-group" id="edit-crops-container">
+                    <div class="crop-checkbox">
+                      <input type="checkbox" id="edit-wheat" name="crops" value="wheat">
+                      <label for="edit-wheat">Wheat</label>
+                    </div>
+                    <div class="crop-checkbox">
+                      <input type="checkbox" id="edit-rice" name="crops" value="rice">
+                      <label for="edit-rice">Rice</label>
+                    </div>
+                    <div class="crop-checkbox">
+                      <input type="checkbox" id="edit-corn" name="crops" value="corn">
+                      <label for="edit-corn">Corn</label>
+                    </div>
+                    <div class="crop-checkbox">
+                      <input type="checkbox" id="edit-sugarcane" name="crops" value="sugarcane">
+                      <label for="edit-sugarcane">Sugarcane</label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="edit-land-size">Land Size (in acres)</label>
+                  <input type="number" id="edit-land-size" name="landSize" class="form-control" min="0" step="0.1" required>
+                </div>
+              </div>
+              
+              <div class="form-actions">
+                <button type="button" id="edit-profile-cancel" class="btn btn-secondary">Cancel</button>
+                <button type="submit" id="edit-profile-save" class="btn btn-primary">Save Changes</button>
+              </div>
+              
+              <div id="edit-profile-message" class="message-container"></div>
+            </form>
+            
+            <div>
+              <h3>Recent Activity</h3>
+              <p>
+                Your profile was created on <span id="created-date">--</span>
+              </p>
+              <p>Last updated on <span id="updated-date">--</span></p>
+            </div>
+          </div>
+        </section>
+      </main>
+      </div>
+    </div>
+
+    <!-- Loading spinner while checking user data -->
+    <div id="loading-container" class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading your dashboard...</p>
+    </div>
+
+    <!-- Error message if something goes wrong -->
+    <div id="error-message" class="error-message">
+      <p>
+        Sorry, we encountered an error loading your dashboard. Please try again
+        later.
+      </p>
+    </div>
+
+    <!-- Stubble Upload Modal -->
+    <div id="stubble-upload-modal" class="modal">
+      <div class="modal-content" id="stubble-modal-content">
+        <!-- Step 1: Details -->
+        <form id="stubble-step1" style="display:block;">
+          <h2>Stubble Details</h2>
+          <label for="stubble-type">Type of Stubble *</label>
+          <input type="text" id="stubble-type" required />
+          <div class="field-error" id="error-type"></div>
+
+          <label for="quantity">Quantity (tons) *</label>
+          <input type="number" id="quantity" min="0.01" step="0.01" required />
+          <div class="field-error" id="error-quantity"></div>
+
+          <label for="price">Price (per ton) *</label>
+          <input type="number" id="price" min="0.01" step="0.01" required />
+          <div class="field-error" id="error-price"></div>
+
+          <label for="moisture">Moisture (%)</label>
+          <input type="number" id="moisture" min="0" max="100" />
+          <div class="field-error" id="error-moisture"></div>
+
+          <label for="harvest-date">Harvest Date *</label>
+          <input type="date" id="harvest-date" required />
+          <div class="field-error" id="error-harvest"></div>
+
+          <label for="description">Description</label>
+          <textarea id="description" rows="2"></textarea>
+
+          <button type="button" class="btn-primary" id="next-to-images">Next</button>
+          <span class="close" id="close-stubble-upload">&times;</span>
+        </form>
+
+        <!-- Step 2: Images -->
+        <form id="stubble-step2" style="display:none;">
+          <h2>Upload Images</h2>
+          <label class="custom-file-label">
+            <input type="file" id="stubble-images" accept="image/*" multiple style="display:none;" />
+            <span id="choose-files-btn">Choose Images (up to 3)</span>
+          </label>
+          <div id="image-preview-list" class="image-preview-list"></div>
+          <div class="field-error" id="error-images"></div>
+          <button type="button" class="btn-primary" id="back-to-details">Back</button>
+          <button type="button" class="btn-primary" id="submit-stubble">Upload</button>
+        </form>
+
+        <!-- Step 3: Success -->
+        <div id="stubble-step3" style="display:none;">
+          <h2>Stubble Uploaded!</h2>
+          <div class="success-message">Stubble uploaded successfully!</div>
+          <button type="button" class="btn-primary" id="close-success">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+        updateDoc,
+        setDoc,
+        collection,
+        addDoc,
+        serverTimestamp,
+        query,
+        orderBy,
+        onSnapshot,
+        writeBatch,
+        getDocs,
+        where,
+      } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDFpSCsDT4fe2sQWUx5OL84rLFTkoT5HUo",
+        authDomain: "stubble-management-b1b52.firebaseapp.com",
+        databaseURL:
+          "https://stubble-management-b1b52-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "stubble-management-b1b52",
+        storageBucket: "stubble-management-b1b52.firebasestorage.app",
+        messagingSenderId: "344933519470",
+        appId: "1:344933519470:web:59dbcf41a80ef4e5ea167f",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      // --- DOM Elements ---
+      const loadingContainer = document.getElementById("loading-container");
+      const errorMessage = document.getElementById("error-message");
+      const dashboardContainer = document.getElementById("dashboard-container");
+      const userNameEl = document.getElementById("user-name");
+      const landSizeEl = document.getElementById("land-size");
+      const soilTypeEl = document.getElementById("soil-type");
+      const locationEl = document.getElementById("location");
+      const cropsListEl = document.getElementById("crops-list");
+      const createdDateEl = document.getElementById("created-date");
+      const updatedDateEl = document.getElementById("updated-date");
+      const profileImageEl = document.getElementById("profile-image");
+      const profileInputEl = document.getElementById("profile-photo-input");
+      const logoutBtn = document.getElementById("sidebar-signout");
+
+      // Stubble form elements
+      const stubbleModal = document.getElementById("stubble-upload-modal");
+      const step1 = document.getElementById("stubble-step1");
+      const step2 = document.getElementById("stubble-step2");
+      const step3 = document.getElementById("stubble-step3");
+      const nextBtn = document.getElementById("next-to-images");
+      const backBtn = document.getElementById("back-to-details");
+      const submitBtn = document.getElementById("submit-stubble");
+      const closeSuccessBtn = document.getElementById("close-success");
+      const closeStubbleBtn = document.getElementById("close-stubble-upload");
+      const stubbleImagesInput = document.getElementById("stubble-images");
+      const imagePreviewList = document.getElementById("image-preview-list");
+
+      // State for form
+      let stubbleFormData = {
+        type: "",
+        quantity: "",
+        price: "",
+        moisture: "",
+        harvestDate: "",
+        description: "",
+        images: []
+      };
+
+      // Step 1: Validate and go to images
+      nextBtn.onclick = function () {
+        // Clear errors
+        ["type", "quantity", "price", "moisture", "harvest"].forEach(id => {
+          document.getElementById("error-" + id).textContent = "";
+        });
+
+        // Get values
+        stubbleFormData.type = document.getElementById("stubble-type").value.trim();
+        stubbleFormData.quantity = document.getElementById("quantity").value.trim();
+        stubbleFormData.price = document.getElementById("price").value.trim();
+        stubbleFormData.moisture = document.getElementById("moisture").value.trim();
+        stubbleFormData.harvestDate = document.getElementById("harvest-date").value;
+        stubbleFormData.description = document.getElementById("description").value.trim();
+
+        let valid = true;
+
+        // Type
+        if (!stubbleFormData.type) {
+          document.getElementById("error-type").textContent = "Type is required.";
+          valid = false;
+        }
+        // Quantity
+        if (!stubbleFormData.quantity || isNaN(stubbleFormData.quantity) || Number(stubbleFormData.quantity) <= 0) {
+          document.getElementById("error-quantity").textContent = "Enter a valid quantity.";
+          valid = false;
+        }
+        // Price
+        if (!stubbleFormData.price || isNaN(stubbleFormData.price) || Number(stubbleFormData.price) <= 0) {
+          document.getElementById("error-price").textContent = "Enter a valid price.";
+          valid = false;
+        }
+        // Moisture (optional)
+        if (stubbleFormData.moisture) {
+          if (isNaN(stubbleFormData.moisture) || Number(stubbleFormData.moisture) < 0 || Number(stubbleFormData.moisture) > 100) {
+            document.getElementById("error-moisture").textContent = "Moisture must be 0-100.";
+            valid = false;
+          }
+        }
+        // Harvest date: required, must be within last 7 days
+        if (!stubbleFormData.harvestDate) {
+          document.getElementById("error-harvest").textContent = "Harvest date is required.";
+          valid = false;
+        } else {
+          const selected = new Date(stubbleFormData.harvestDate);
+          const now = new Date();
+          const weekAgo = new Date();
+          weekAgo.setDate(now.getDate() - 7);
+          if (selected > now || selected < weekAgo) {
+            document.getElementById("error-harvest").textContent = "Date must be within the last 7 days.";
+            valid = false;
+          }
+        }
+
+        if (!valid) return;
+
+        // Go to step 2
+        if (step1 && step2 && step3) {
+          step1.style.display = "none";
+          step2.style.display = "block";
+          step3.style.display = "none";
+        }
+      };
+
+      // Step 2: Back to details
+      backBtn.onclick = function () {
+        if (step1 && step2 && step3) {
+          step1.style.display = "block";
+          step2.style.display = "none";
+          step3.style.display = "none";
+        }
+      };
+
+      // Step 2: Handle image selection and preview
+      let selectedImages = [];
+      stubbleImagesInput.onchange = function (e) {
+        const files = Array.from(e.target.files);
+        // Only allow up to 3 images
+        if (selectedImages.length + files.length > 3) {
+          document.getElementById("error-images").textContent = "You can upload up to 3 images.";
+          return;
+        }
+        document.getElementById("error-images").textContent = "";
+        files.forEach(file => {
+          if (!file.type.startsWith("image/")) return;
+          const reader = new FileReader();
+          reader.onload = function (ev) {
+            selectedImages.push({ file, dataUrl: ev.target.result });
+            renderImagePreviews();
+          };
+          reader.readAsDataURL(file);
+        });
+        // Reset input so same file can be reselected
+        stubbleImagesInput.value = "";
+      };
+
+      function renderImagePreviews() {
+        imagePreviewList.innerHTML = "";
+        selectedImages.forEach((img, idx) => {
+          const div = document.createElement("div");
+          div.className = "img-preview";
+          div.innerHTML = `
+            <img src="${img.dataUrl}" alt="Preview"/>
+            <button type="button" class="remove-img" data-idx="${idx}">&times;</button>
+          `;
+          imagePreviewList.appendChild(div);
+        });
+        // Remove handler
+        imagePreviewList.querySelectorAll(".remove-img").forEach(btn => {
+          btn.onclick = function () {
+            const idx = Number(this.getAttribute("data-idx"));
+            selectedImages.splice(idx, 1);
+            renderImagePreviews();
+          };
+        });
+      }
+
+      // Step 2: Submit
+      submitBtn.onclick = async function () {
+        // Validate images
+        if (selectedImages.length === 0) {
+          document.getElementById("error-images").textContent = "Please upload at least 1 image.";
+          return;
+        }
+        document.getElementById("error-images").textContent = "";
+
+        // Compress images and prepare data
+        const imageBase64s = [];
+        for (let i = 0; i < selectedImages.length; i++) {
+          const file = selectedImages[i].file;
+          try {
+            const compressedDataUrl = await compressImage(file, 0.6); // Lower quality for more compression
+            if (getBase64Size(compressedDataUrl) > 700 * 1024) {
+              document.getElementById("error-images").textContent = "One of your images is too large even after compression. Please choose a smaller image.";
+              return;
+            }
+            imageBase64s.push(compressedDataUrl);
+          } catch (err) {
+            document.getElementById("error-images").textContent = "Error compressing image.";
+            return;
+          }
+        }
+
+        // Prepare stubbleData
+        const stubbleData = {
+          type: stubbleFormData.type,
+          quantity: Number(stubbleFormData.quantity),
+          price: Number(stubbleFormData.price),
+          moisture: stubbleFormData.moisture ? Number(stubbleFormData.moisture) : null,
+          harvestDate: stubbleFormData.harvestDate,
+          description: stubbleFormData.description,
+          images: imageBase64s,
+          uploadTimestamp: new Date().toISOString(),
+          status: "available"
+        };
+
+        // Save to Firestore (reuse your logic, add userId)
+        try {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Uploading...";
+          const user = auth.currentUser;
+          if (!user) throw new Error("You must be logged in to upload stubble.");
+
+          stubbleData.farmerId = user.uid;
+
+          // Save to subcollection and main collection
+          const farmerRef = doc(db, "farmers", user.uid);
+          const stubbleRef = doc(collection(farmerRef, "stubble"));
+          await setDoc(stubbleRef, stubbleData);
+          await setDoc(doc(db, "stubble", stubbleRef.id), {
+            ...stubbleData,
+            stubbleId: stubbleRef.id,
+          });
+
+          // After successful upload:
+          const notificationsRef = collection(db, "farmers", user.uid, "notifications");
+          await addDoc(notificationsRef, {
+            message: "Stubble upload successful!",
+            timestamp: new Date().toISOString(),
+            read: false
+          });
+
+          // Success: show step 3
+          if (step1 && step2 && step3) {
+            step1.style.display = "none";
+            step2.style.display = "none";
+            step3.style.display = "block";
+          }
+          // Reset state
+          selectedImages = [];
+          renderImagePreviews();
+          // Refresh stubble list
+          loadStubbleUploads();
+        } catch (err) {
+          document.getElementById("error-images").textContent = err.message || "Error uploading stubble.";
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Upload";
+        }
+      };
+
+      // Step 3: Close
+      closeSuccessBtn.onclick = function () {
+        if (stubbleModal) {
+          stubbleModal.style.display = "none";
+          if (step1) step1.reset();
+          if (step2) step2.reset();
+          // Don't call step3.reset() -- it's a div, not a form!
+          if (step1) step1.style.display = "block";
+          if (step2) step2.style.display = "none";
+          if (step3) step3.style.display = "none";
+          selectedImages = [];
+          renderImagePreviews();
+        }
+      };
+
+      // Modal open/close logic
+      document.getElementById("open-stubble-upload").onclick = function () {
+        if (stubbleModal) {
+          if (step1) step1.reset();
+          if (step2) step2.reset();
+          // Don't call step3.reset() -- it's a div, not a form!
+          if (step1) step1.style.display = "block";
+          if (step2) step2.style.display = "none";
+          if (step3) step3.style.display = "none";
+          selectedImages = [];
+          renderImagePreviews();
+          stubbleModal.style.display = "block";
+        }
+      };
+      closeStubbleBtn.onclick = function () {
+        if (stubbleModal) {
+          stubbleModal.style.display = "none";
+        }
+      };
+
+      // --- Stubble List with Remove Action ---
+      async function loadStubbleUploads() {
+        const user = auth.currentUser;
+        if (!user) return;
+        const farmerRef = doc(db, "farmers", user.uid);
+        const stubbleCol = collection(farmerRef, "stubble");
+        const stubbleList = document.getElementById("stubble-list");
+        stubbleList.innerHTML = "<div>Loading...</div>";
+        const { getDocs } = await import("https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js");
+        const snap = await getDocs(stubbleCol);
+        if (snap.empty) {
+          stubbleList.innerHTML = "<p>No stubble uploads yet.</p>";
+          // Render empty chart
+          renderTransactionChart([]);
+          return;
+        }
+        stubbleList.innerHTML = "";
+        const stubbleArray = [];
+        snap.forEach(docSnap => {
+          const stubble = docSnap.data();
+          stubbleArray.push(stubble);
+          const div = document.createElement("div");
+          div.className = "stubble-item";
+          div.innerHTML = `
+            <h4>${stubble.type} (${stubble.quantity} tons)</h4>
+            <p>Price: ₹${stubble.price} per ton</p>
+            <p>Status: <span class="stubble-status">${stubble.status}</span></p>
+            <div style="display:flex;gap:8px;">
+              ${stubble.images && stubble.images.length ? stubble.images.map(img => `<img src="${img}" style="width:40px;height:40px;border-radius:4px;object-fit:cover;">`).join('') : ""}
+            </div>
+            <button class="remove-stubble" data-id="${docSnap.id}">Remove</button>
+          `;
+          stubbleList.appendChild(div);
+        });
+
+        // Calculate total available stubble for sale (robust)
+        const totalAvailable = stubbleArray
+          .filter(stubble => (stubble.status || '').toLowerCase().trim() === "available")
+          .reduce((sum, stubble) => sum + (parseFloat(stubble.quantity) || 0), 0);
+
+        console.log("Available stubble entries:", stubbleArray.filter(stubble => (stubble.status || '').toLowerCase().trim() === "available"));
+        console.log("Total available stubble:", totalAvailable);
+
+        const totalAvailableEl = document.getElementById("total-stubble-available");
+        if (totalAvailableEl) {
+          totalAvailableEl.textContent = totalAvailable;
+        }
+
+        // Render the chart with stubbleArray
+        renderTransactionChart(stubbleArray);
+        // Remove handler
+        stubbleList.querySelectorAll(".remove-stubble").forEach(btn => {
+          btn.onclick = async function () {
+            const id = this.getAttribute("data-id");
+            if (!confirm("Remove this stubble upload?")) return;
+            await import("https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js").then(async ({ deleteDoc, addDoc, collection }) => {
+              await deleteDoc(doc(collection(farmerRef, "stubble"), id));
+              await deleteDoc(doc(db, "stubble", id));
+              // Add notification
+              const notificationsRef = collection(db, "farmers", auth.currentUser.uid, "notifications");
+              await addDoc(notificationsRef, {
+                message: "A stubble upload was removed.",
+                timestamp: new Date().toISOString(),
+                read: false
+              });
+            });
+            await loadStubbleUploads();
+          };
+        });
+
+        console.log(
+          stubbleArray.map(s => ({ status: s.status, quantity: s.quantity }))
+        );
+      }
+
+      // Load stubble uploads on page load and after upload
+      onAuthStateChanged(auth, (user) => {
+        if (user) loadStubbleUploads();
+      });
+
+      // --- Auth & Main Logic ---
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          window.location.href = "../index.html";
+          return;
+        }
+        try {
+          const farmerRef = doc(db, "farmers", user.uid);
+          const farmerSnap = await getDoc(farmerRef);
+
+          if (!farmerSnap.exists()) {
+            window.location.href = "farmer_data.html";
+            return;
+          }
+
+          const userData = farmerSnap.data();
+          renderDashboard(userData);
+
+          // Update users collection (basic info)
+          await updateDoc(doc(db, "users", user.uid), {
+            name: userData.personalInfo?.fullName || userData.name || "User",
+            role: "farmer",
+            profileComplete: true,
+            updatedAt: new Date().toISOString(),
+          });
+
+          setupProfilePhoto(user.uid, userData);
+          loadingContainer.style.display = "none";
+          dashboardContainer.style.display = "block";
+          listenToFarmerOrders(user.uid);
+        } catch (err) {
+          console.error(err);
+          loadingContainer.style.display = "none";
+          errorMessage.style.display = "block";
+        }
+      });
+
+      // --- Render Dashboard Data ---
+      function renderDashboard(data) {
+        // Safely update elements by checking if they exist first
+        const landSizeEl = document.getElementById("land-size");
+        if (landSizeEl) landSizeEl.textContent = data.farmInfo?.landSize || "--";
+        
+        const soilTypeEl = document.getElementById("soil-type");
+        if (soilTypeEl) soilTypeEl.textContent = data.farmInfo?.soilType || "--";
+        
+        const locationEl = document.getElementById("location");
+        if (locationEl) {
+          locationEl.textContent = data.location
+            ? [data.location.village, data.location.district, data.location.state]
+                .filter(Boolean)
+                .join(", ")
+            : "--";
+        }
+
+        // Crops
+        const cropsListEl = document.getElementById("crops-list");
+        if (cropsListEl) {
+          cropsListEl.innerHTML = "";
+          if (Array.isArray(data.farmInfo?.crops) && data.farmInfo.crops.length) {
+            data.farmInfo.crops.forEach((crop) => {
+              const li = document.createElement("li");
+              li.textContent = crop;
+              cropsListEl.appendChild(li);
+            });
+          } else {
+            cropsListEl.innerHTML = "<li>No crops listed</li>";
+          }
+        }
+
+        // Dates
+        const createdDateEl = document.getElementById("created-date");
+        if (createdDateEl) {
+          createdDateEl.textContent = data.createdAt
+            ? new Date(data.createdAt).toLocaleDateString()
+            : "--";
+        }
+        
+        const updatedDateEl = document.getElementById("updated-date");
+        if (updatedDateEl) {
+          updatedDateEl.textContent = data.updatedAt
+            ? new Date(data.updatedAt).toLocaleDateString()
+            : "--";
+        }
+
+        // Profile image
+        const profileImageEl = document.getElementById("profile-image");
+        if (profileImageEl && data.profilePhoto) {
+          profileImageEl.src = data.profilePhoto;
+        }
+
+        const sidebarProfileImage = document.getElementById("sidebar-profile-image");
+        if (sidebarProfileImage && data.profilePhoto) {
+          sidebarProfileImage.src = data.profilePhoto;
+        }
+
+        // --- Add this for the greeting ---
+        const sidebarGreeting = document.getElementById("sidebar-greeting");
+        if (sidebarGreeting) {
+          // Try to get the user's name from personalInfo, fallback to name, fallback to "User"
+          const name = data.personalInfo?.fullName || data.name || "User";
+          sidebarGreeting.textContent = `Hello, ${name}!`;
+        }
+        
+        // Also populate the edit profile form
+        populateEditProfileForm(data);
+      }
+      
+      // Store original form data to detect changes
+      let originalFormData = {};
+      
+      // Function to populate the edit profile form with user data
+      function populateEditProfileForm(data) {
+        // Personal Information
+        const fullNameInput = document.getElementById("edit-fullname");
+        if (fullNameInput) fullNameInput.value = data.personalInfo?.fullName || data.name || "";
+        
+        const dobInput = document.getElementById("edit-dob");
+        if (dobInput) dobInput.value = data.personalInfo?.dateOfBirth || "";
+        
+        const mobileInput = document.getElementById("edit-mobile");
+        if (mobileInput) mobileInput.value = data.personalInfo?.mobileNumber || "";
+        
+        const languageSelect = document.getElementById("edit-language");
+        if (languageSelect) languageSelect.value = data.personalInfo?.preferredLanguage || "";
+        
+        // Location Information
+        const stateSelect = document.getElementById("edit-state");
+        if (stateSelect) {
+          // Populate states first
+          populateEditStates();
+          stateSelect.value = data.location?.state || "";
+          
+          // Then populate districts based on selected state
+          if (data.location?.state) {
+            populateEditDistricts(data.location.state);
+            
+            const districtSelect = document.getElementById("edit-district");
+            if (districtSelect) districtSelect.value = data.location?.district || "";
+          }
+        }
+        
+        const villageInput = document.getElementById("edit-village");
+        if (villageInput) villageInput.value = data.location?.village || "";
+        
+        const pincodeInput = document.getElementById("edit-pincode");
+        if (pincodeInput) pincodeInput.value = data.location?.pincode || "";
+        
+        const coordinatesInput = document.getElementById("edit-coordinates");
+        if (coordinatesInput) coordinatesInput.value = data.location?.coordinates || "";
+        
+        // Farm Information
+        const soilTypeSelect = document.getElementById("edit-soil-type");
+        if (soilTypeSelect) soilTypeSelect.value = data.farmInfo?.soilType || "";
+        
+        // Crops checkboxes
+        const cropCheckboxes = document.querySelectorAll('input[name="crops"]');
+        cropCheckboxes.forEach(checkbox => {
+          checkbox.checked = false; // Reset all checkboxes first
+        });
+        
+        if (Array.isArray(data.farmInfo?.crops)) {
+          data.farmInfo.crops.forEach(crop => {
+            const checkbox = document.getElementById(`edit-${crop.toLowerCase()}`);
+            if (checkbox) checkbox.checked = true;
+          });
+        }
+        
+        const landSizeInput = document.getElementById("edit-land-size");
+        if (landSizeInput) landSizeInput.value = data.farmInfo?.landSize || "";
+        
+        // Store original form data to detect changes
+        originalFormData = {
+          fullName: fullNameInput ? fullNameInput.value : "",
+          dateOfBirth: dobInput ? dobInput.value : "",
+          mobileNumber: mobileInput ? mobileInput.value : "",
+          preferredLanguage: languageSelect ? languageSelect.value : "",
+          state: stateSelect ? stateSelect.value : "",
+          district: document.getElementById("edit-district") ? document.getElementById("edit-district").value : "",
+          village: villageInput ? villageInput.value : "",
+          pincode: pincodeInput ? pincodeInput.value : "",
+          coordinates: coordinatesInput ? coordinatesInput.value : "",
+          soilType: soilTypeSelect ? soilTypeSelect.value : "",
+          crops: Array.from(document.querySelectorAll('input[name="crops"]:checked')).map(cb => cb.value),
+          landSize: landSizeInput ? landSizeInput.value : ""
+        };
+        
+        // Disable save button initially
+        const saveButton = document.getElementById("edit-profile-save");
+        if (saveButton) saveButton.disabled = true;
+        
+        // Add change event listeners to all form fields
+        setupFormChangeListeners();
+      }
+      
+      // Function to check if the form has been changed
+      function checkFormChanged() {
+        const currentFormData = {
+          fullName: document.getElementById("edit-fullname") ? document.getElementById("edit-fullname").value : "",
+          dateOfBirth: document.getElementById("edit-dob") ? document.getElementById("edit-dob").value : "",
+          mobileNumber: document.getElementById("edit-mobile") ? document.getElementById("edit-mobile").value : "",
+          preferredLanguage: document.getElementById("edit-language") ? document.getElementById("edit-language").value : "",
+          state: document.getElementById("edit-state") ? document.getElementById("edit-state").value : "",
+          district: document.getElementById("edit-district") ? document.getElementById("edit-district").value : "",
+          village: document.getElementById("edit-village") ? document.getElementById("edit-village").value : "",
+          pincode: document.getElementById("edit-pincode") ? document.getElementById("edit-pincode").value : "",
+          coordinates: document.getElementById("edit-coordinates") ? document.getElementById("edit-coordinates").value : "",
+          soilType: document.getElementById("edit-soil-type") ? document.getElementById("edit-soil-type").value : "",
+          crops: Array.from(document.querySelectorAll('input[name="crops"]:checked')).map(cb => cb.value),
+          landSize: document.getElementById("edit-land-size") ? document.getElementById("edit-land-size").value : ""
+        };
+        
+        // Compare current form data with original form data
+        let hasChanged = false;
+        
+        // Check simple string fields
+        const stringFields = ['fullName', 'dateOfBirth', 'mobileNumber', 'preferredLanguage', 
+                             'state', 'district', 'village', 'pincode', 'coordinates', 
+                             'soilType', 'landSize'];
+        
+        for (const field of stringFields) {
+          if (currentFormData[field] !== originalFormData[field]) {
+            hasChanged = true;
+            break;
+          }
+        }
+        
+        // Check crops array (special case since it's an array)
+        if (!hasChanged && currentFormData.crops.length !== originalFormData.crops.length) {
+          hasChanged = true;
+        } else if (!hasChanged) {
+          // Check if the arrays have the same elements (regardless of order)
+          const currentCropsSet = new Set(currentFormData.crops);
+          for (const crop of originalFormData.crops) {
+            if (!currentCropsSet.has(crop)) {
+              hasChanged = true;
+              break;
+            }
+          }
+        }
+        
+        // Enable or disable save button based on changes
+        const saveButton = document.getElementById("edit-profile-save");
+        if (saveButton) saveButton.disabled = !hasChanged;
+        
+        return hasChanged;
+      }
+      
+      // Function to set up change event listeners for all form fields
+      function setupFormChangeListeners() {
+        // Get all form inputs, selects, and textareas
+        const formElements = document.querySelectorAll('#edit-profile-form input, #edit-profile-form select, #edit-profile-form textarea');
+        
+        // Add change event listener to each element
+        formElements.forEach(element => {
+          element.addEventListener('input', checkFormChanged);
+          element.addEventListener('change', checkFormChanged);
+        });
+      }
+
+      // Profile photo management
+      function setupProfilePhoto(userId, userData) {
+        const profileImageEl = document.getElementById("profile-image");
+        const profileInputEl = document.getElementById("profile-photo-input");
+        const profileOverlay = document.querySelector(".profile-image-overlay");
+        
+        // Create notification element if it doesn't exist
+        let notification = document.getElementById("photo-upload-notification");
+        if (!notification) {
+          notification = document.createElement("div");
+          notification.id = "photo-upload-notification";
+          notification.className = "upload-notification";
+          document.body.appendChild(notification);
+        }
+        
+        // Set initial profile image if available
+        if (userData.profilePhoto && profileImageEl) {
+          profileImageEl.src = userData.profilePhoto;
+        }
+        
+        // Add event listener for file input change
+        if (profileInputEl) {
+          profileInputEl.addEventListener("change", async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            
+            // Validate file type
+            if (!file.type.match('image.*')) {
+              notification.className = "upload-notification error";
+              notification.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please select an image file';
+              notification.classList.add("show");
+              setTimeout(() => notification.classList.remove("show"), 3000);
+              return;
+            }
+            
+            // Show loading state
+            if (profileImageEl) profileImageEl.style.opacity = "0.6";
+            if (profileOverlay) {
+              profileOverlay.innerHTML = '<div class="upload-loading"><i class="fas fa-spinner fa-spin"></i><span>Uploading...</span></div>';
+              profileOverlay.style.opacity = "1";
+            }
+            
+            try {
+              // Create a preview before uploading
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                if (profileImageEl) profileImageEl.src = e.target.result;
+              };
+              reader.readAsDataURL(file);
+              
+              // Compress the image
+              const compressedDataUrl = await compressImage(file, 0.7);
+              const size = getBase64Size(compressedDataUrl);
+              
+              if (size > 700 * 1024) {
+                throw new Error("Image too large after compression (max 700KB)");
+              }
+              
+              // Update Firestore with the compressed image
+              await updateDoc(doc(db, "farmers", userId), {
+                profilePhoto: compressedDataUrl,
+                updatedAt: new Date().toISOString()
+              });
+              
+              // Also update the users collection with the profile photo
+              await updateDoc(doc(db, "users", userId), {
+                profilePhoto: compressedDataUrl,
+                updatedAt: new Date().toISOString()
+              });
+              
+              // Update all profile images in the UI
+              const allProfileImages = document.querySelectorAll('.profile-image');
+              allProfileImages.forEach(img => {
+                img.src = compressedDataUrl;
+              });
+              
+              // Show success animation
+              if (profileImageEl) {
+                profileImageEl.classList.add("profile-image-success");
+                setTimeout(() => profileImageEl.classList.remove("profile-image-success"), 1500);
+              }
+              
+              // Show success notification
+              notification.className = "upload-notification success";
+              notification.innerHTML = '<i class="fas fa-check-circle"></i> Profile photo updated!';
+              notification.classList.add("show");
+              setTimeout(() => notification.classList.remove("show"), 3000);
+              
+            } catch (err) {
+              console.error("Error uploading profile photo:", err);
+              
+              // Show error notification
+              notification.className = "upload-notification error";
+              notification.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${err.message || "Upload failed"}`;
+              notification.classList.add("show");
+              setTimeout(() => notification.classList.remove("show"), 3000);
+              
+              // Reset profile image to original if upload failed
+              if (profileImageEl) {
+                profileImageEl.src = userData.profilePhoto || "../assests/default-profile.png";
+              }
+            } finally {
+              // Reset UI
+              if (profileImageEl) profileImageEl.style.opacity = "1";
+              if (profileOverlay) {
+                profileOverlay.innerHTML = '<label for="profile-photo-input" class="change-photo-btn"><i class="fas fa-camera"></i><span>Change Photo</span></label>';
+                profileOverlay.style.opacity = "";
+              }
+            }
+          });
+        }
+        
+        // Add click event to the profile image container to trigger file input
+        const profileContainer = document.querySelector(".profile-image-container");
+        if (profileContainer) {
+          profileContainer.addEventListener("click", () => {
+            profileInputEl.click();
+          });
+        }
+      }
+
+      async function compressAndUploadImage(file, userId) {
+        if (!file.type.match("image.*"))
+          throw new Error("Please select an image file.");
+        if (file.size > 5 * 1024 * 1024)
+          throw new Error("Image too large (max 5MB).");
+
+        const compressedDataUrl = await compressImage(file, 0.7);
+        const size = getBase64Size(compressedDataUrl);
+
+        if (size > 700 * 1024)
+          throw new Error("Image too large after compression (max 700KB).");
+
+        // Store in Firebase Storage instead of directly in document
+        const storageRef = ref(storage, `profile_photos/${userId}`);
+        await uploadString(storageRef, compressedDataUrl, "data_url");
+        const downloadURL = await getDownloadURL(storageRef);
+
+        // Update user document with the download URL
+        await updateDoc(doc(db, "farmers", userId), {
+          profilePhoto: downloadURL,
+          updatedAt: new Date().toISOString(),
+        });
+
+        return downloadURL;
+      }
+
+      function compressImage(file, quality = 0.7) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              let [w, h] = [img.width, img.height];
+
+              // Resize if needed
+              if (w > 800 || h > 800) {
+                const ratio = Math.min(800 / w, 800 / h);
+                w = Math.floor(w * ratio);
+                h = Math.floor(h * ratio);
+              }
+
+              canvas.width = w;
+              canvas.height = h;
+              canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+              resolve(canvas.toDataURL("image/jpeg", quality));
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function getBase64Size(base64) {
+        const b64 = base64.split(",")[1] || "";
+        return Math.ceil((b64.length * 3) / 4);
+      }
+
+      // --- Logout ---
+      logoutBtn.addEventListener("click", async () => {
+        // Close sidebar before logout
+        closeSidebar();
+
+        try {
+          await signOut(auth);
+          window.location.href = "../index.html";
+        } catch (error) {
+          console.error("Error signing out:", error);
+          alert("Error signing out. Please try again.");
+        }
+      });
+
+      // Sidebar navigation logic
+      const navBtns = {
+        overview: document.getElementById("nav-overview"),
+        stubble: document.getElementById("nav-stubble"),
+        orders: document.getElementById("nav-orders"),
+        editProfile: document.getElementById("nav-edit-profile"),
+      };
+      const sections = {
+        overview: document.getElementById("section-overview"),
+        stubble: document.getElementById("section-stubble"),
+        orders: document.getElementById("section-orders"),
+        editProfile: document.getElementById("section-edit-profile"),
+      };
+
+      function showSection(section) {
+        Object.values(sections).forEach((sec) => (sec.style.display = "none"));
+        sections[section].style.display = "block";
+        Object.values(navBtns).forEach((btn) => btn.classList.remove("active"));
+        if (section === "editProfile") {
+          navBtns.editProfile.classList.add("active");
+        } else {
+          navBtns[section].classList.add("active");
+        }
+      }
+
+      navBtns.overview.addEventListener("click", () => {
+        showSection("overview");
+        closeSidebar(); // Close sidebar when navigation button is clicked
+      });
+      navBtns.stubble.addEventListener("click", () => {
+        showSection("stubble");
+        closeSidebar(); // Close sidebar when navigation button is clicked
+      });
+      navBtns.orders.addEventListener("click", () => {
+        showSection("orders");
+        closeSidebar(); // Close sidebar when navigation button is clicked
+      });
+      navBtns.editProfile.addEventListener("click", () => {
+        showSection("editProfile");
+        closeSidebar(); // Close sidebar when navigation button is clicked
+      });
+
+      // Show overview by default
+      showSection("overview");
+
+      // --- Edit Profile Functions ---
+      
+      // Function to populate states dropdown in edit profile form
+      async function populateEditStates() {
+        const stateSelect = document.getElementById("edit-state");
+        if (!stateSelect) return;
+        
+        try {
+          // Check if we already have the states data
+          if (!window.statesData) {
+            const response = await fetch('/js/list.json');
+            if (!response.ok) {
+              throw new Error('Failed to load states data');
+            }
+            window.statesData = await response.json();
+          }
+          
+          // Clear existing options except the first one
+          while (stateSelect.options.length > 1) {
+            stateSelect.remove(1);
+          }
+          
+          // Add states in alphabetical order
+          const sortedStates = Object.keys(window.statesData).sort();
+          sortedStates.forEach(state => {
+            const option = document.createElement('option');
+            option.value = state;
+            option.textContent = state;
+            stateSelect.appendChild(option);
+          });
+          
+          // Add event listener to populate districts when state changes
+          stateSelect.addEventListener('change', function() {
+            populateEditDistricts(this.value);
+          });
+          
+        } catch (error) {
+          console.error('Error loading states data:', error);
+        }
+      }
+      
+      // Function to populate districts dropdown in edit profile form
+      function populateEditDistricts(selectedState) {
+        const districtSelect = document.getElementById("edit-district");
+        if (!districtSelect) return;
+        
+        // Clear existing options except the first one
+        while (districtSelect.options.length > 1) {
+          districtSelect.remove(1);
+        }
+        
+        // If no state is selected or states data is not available, disable the district dropdown
+        if (!selectedState || !window.statesData || !window.statesData[selectedState]) {
+          districtSelect.disabled = true;
+          return;
+        }
+        
+        // Enable the district dropdown
+        districtSelect.disabled = false;
+        
+        // Add districts in alphabetical order
+        const sortedDistricts = window.statesData[selectedState].sort();
+        sortedDistricts.forEach(district => {
+          const option = document.createElement('option');
+          option.value = district;
+          option.textContent = district;
+          districtSelect.appendChild(option);
+        });
+      }
+      
+      // Function to handle the edit profile form submission
+      async function handleEditProfileSubmit(event) {
+        event.preventDefault();
+        
+        const saveButton = document.getElementById("edit-profile-save");
+        const messageContainer = document.getElementById("edit-profile-message");
+        
+        // Show loading state
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        messageContainer.className = "message-container";
+        messageContainer.textContent = "";
+        
+        try {
+          const user = auth.currentUser;
+          if (!user) throw new Error("User not authenticated");
+          
+          // Collect form data
+          const formData = {
+            personalInfo: {
+              fullName: document.getElementById("edit-fullname").value,
+              dateOfBirth: document.getElementById("edit-dob").value,
+              mobileNumber: document.getElementById("edit-mobile").value,
+              preferredLanguage: document.getElementById("edit-language").value
+            },
+            location: {
+              state: document.getElementById("edit-state").value,
+              district: document.getElementById("edit-district").value,
+              village: document.getElementById("edit-village").value,
+              pincode: document.getElementById("edit-pincode").value,
+              coordinates: document.getElementById("edit-coordinates").value || null
+            },
+            farmInfo: {
+              soilType: document.getElementById("edit-soil-type").value,
+              landSize: parseFloat(document.getElementById("edit-land-size").value),
+              crops: Array.from(document.querySelectorAll('input[name="crops"]:checked'))
+                .map(checkbox => checkbox.value)
+            },
+            updatedAt: new Date().toISOString()
+          };
+          
+          // Update Firestore
+          const farmerRef = doc(db, "farmers", user.uid);
+          await updateDoc(farmerRef, formData);
+          
+          // Also update the users collection with basic info
+          await updateDoc(doc(db, "users", user.uid), {
+            name: formData.personalInfo.fullName,
+            updatedAt: formData.updatedAt
+          });
+          
+          // Show success message
+          messageContainer.className = "message-container success";
+          messageContainer.textContent = "Profile updated successfully!";
+          
+          // Reload the dashboard data
+          const farmerSnap = await getDoc(farmerRef);
+          if (farmerSnap.exists()) {
+            const updatedData = farmerSnap.data();
+            renderDashboard(updatedData);
+            
+            // Reset the form state with the new data
+            // This will update originalFormData and disable the save button
+            populateEditProfileForm(updatedData);
+          }
+          
+        } catch (error) {
+          console.error("Error updating profile:", error);
+          messageContainer.className = "message-container error";
+          messageContainer.textContent = "Error updating profile: " + error.message;
+        } finally {
+          // Reset button state
+          saveButton.disabled = false;
+          saveButton.textContent = "Save Changes";
+          
+          // Hide message after 5 seconds
+          setTimeout(() => {
+            if (messageContainer.className.includes("success")) {
+              messageContainer.className = "message-container";
+              messageContainer.textContent = "";
+            }
+          }, 5000);
+        }
+      }
+      
+      // Function to handle the get location button click
+      function handleGetLocation() {
+        const coordinatesInput = document.getElementById("edit-coordinates");
+        const statusElement = document.getElementById("edit-coordinates-status");
+        
+        if (!coordinatesInput || !statusElement) return;
+        
+        statusElement.textContent = "Getting location...";
+        
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function(position) {
+              const lat = position.coords.latitude;
+              const lng = position.coords.longitude;
+              coordinatesInput.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+              statusElement.textContent = "Location fetched successfully";
+              statusElement.style.color = "green";
+            },
+            function(error) {
+              statusElement.textContent = `Error getting location: ${error.message}`;
+              statusElement.style.color = "red";
+            }
+          );
+        } else {
+          statusElement.textContent = "Geolocation is not supported by your browser";
+          statusElement.style.color = "red";
+        }
+      }
+      
+      // Add event listeners for edit profile form
+      document.addEventListener("DOMContentLoaded", function() {
+        const editProfileForm = document.getElementById("edit-profile-form");
+        if (editProfileForm) {
+          editProfileForm.addEventListener("submit", handleEditProfileSubmit);
+        }
+        
+        const getLocationBtn = document.getElementById("edit-get-location-btn");
+        if (getLocationBtn) {
+          getLocationBtn.addEventListener("click", handleGetLocation);
+        }
+        
+        const cancelBtn = document.getElementById("edit-profile-cancel");
+        if (cancelBtn) {
+          cancelBtn.addEventListener("click", function() {
+            // Reset form to original values
+            const farmerRef = doc(db, "farmers", auth.currentUser.uid);
+            getDoc(farmerRef).then(farmerSnap => {
+              if (farmerSnap.exists()) {
+                // Show a subtle animation to indicate reset
+                const formSections = document.querySelectorAll('.form-section');
+                formSections.forEach(section => {
+                  section.style.transition = 'all 0.3s ease';
+                  section.style.transform = 'scale(0.98)';
+                  section.style.opacity = '0.8';
+                  
+                  setTimeout(() => {
+                    section.style.transform = 'scale(1)';
+                    section.style.opacity = '1';
+                  }, 300);
+                });
+                
+                // Reset the form with the original data
+                populateEditProfileForm(farmerSnap.data());
+                
+                // Show a message that form has been reset
+                const messageContainer = document.getElementById("edit-profile-message");
+                if (messageContainer) {
+                  messageContainer.className = "message-container";
+                  messageContainer.textContent = "Form has been reset to original values";
+                  messageContainer.style.background = "#e3f2fd";
+                  messageContainer.style.color = "#0d47a1";
+                  messageContainer.style.border = "1px solid #bbdefb";
+                  messageContainer.style.display = "block";
+                  
+                  // Hide the message after 3 seconds
+                  setTimeout(() => {
+                    messageContainer.style.display = "none";
+                  }, 3000);
+                }
+              }
+            });
+          });
+        }
+      });
+      
+      // Simple script to handle sidebar toggle on mobile
+      document
+        .getElementById("sidebar-toggle")
+        .addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.add("open");
+          document.getElementById("sidebar-backdrop").classList.add("active");
+          // Hide hamburger when sidebar is open
+          this.classList.add("hide-when-sidebar-open");
+        });
+
+      function closeSidebar() {
+        document.querySelector(".sidebar").classList.remove("open");
+        document.getElementById("sidebar-backdrop").classList.remove("active");
+        // Show hamburger again
+        const toggleBtn = document.getElementById("sidebar-toggle");
+        toggleBtn.classList.remove("hide-when-sidebar-open");
+        toggleBtn.querySelector("i").classList.remove("fa-times");
+        toggleBtn.querySelector("i").classList.add("fa-bars");
+      }
+
+      document
+        .getElementById("sidebar-close")
+        .addEventListener("click", closeSidebar);
+      document
+        .getElementById("sidebar-backdrop")
+        .addEventListener("click", closeSidebar);
+
+      // Placeholder for navigation button clicks (to switch between sections)
+      const navButtons = document.querySelectorAll(".sidebar-btn");
+
+      navButtons.forEach((button) => {
+        button.addEventListener("click", function () {
+          // Remove active class from all buttons
+          navButtons.forEach((btn) => btn.classList.remove("active"));
+          // Add active class to clicked button
+          this.classList.add("active");
+
+          // Show the corresponding section
+          const sectionId = "section-" + this.id.split("-")[1];
+          sections.forEach((section) => {
+            section.style.display = section.id === sectionId ? "block" : "none";
+          });
+
+          // Close sidebar on mobile view after clicking any sidebar button
+          if (window.innerWidth <= 900) {
+            document.querySelector(".sidebar").classList.remove("open");
+            document.getElementById("sidebar-backdrop").classList.remove("active");
+          }
+        });
+      });
+
+      function renderTransactionChart(transactions) {
+        const ctx = document.getElementById('transactions-chart').getContext('2d');
+        // Destroy previous chart if exists
+        if (window.transactionChart) {
+          window.transactionChart.destroy();
+        }
+
+        // Prepare data for the chart
+        // Example: group by date, sum amounts
+        const dateMap = {};
+        transactions.forEach(tx => {
+          const date = new Date(tx.timestamp || tx.uploadTimestamp).toLocaleDateString();
+          dateMap[date] = (dateMap[date] || 0) + (tx.price * tx.quantity);
+        });
+        const labels = Object.keys(dateMap);
+        const data = Object.values(dateMap);
+
+        window.transactionChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Earnings (₹)',
+              data,
+              backgroundColor: 'rgba(76, 175, 80, 0.6)',
+              borderColor: 'rgba(76, 175, 80, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+      }
+
+      // --- Notification System ---
+      const notificationBtn = document.getElementById("notification-btn");
+      const notificationDropdown = document.getElementById("notification-dropdown");
+      const notificationList = document.getElementById("notification-list");
+      const notificationBadge = document.getElementById("notification-badge");
+      const markAllReadBtn = document.getElementById("mark-all-read");
+
+      let notificationsUnsubscribe = null;
+      let currentUserId = null;
+
+      // Show/hide dropdown
+      notificationBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        notificationDropdown.style.display = notificationDropdown.style.display === "block" ? "none" : "block";
+      });
+
+      // Hide dropdown when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!notificationDropdown.contains(e.target) && !notificationBtn.contains(e.target)) {
+          notificationDropdown.style.display = "none";
+        }
+      });
+
+      // Listen for auth and notifications
+      onAuthStateChanged(auth, (user) => {
+        if (!user) return;
+        currentUserId = user.uid;
+        if (notificationsUnsubscribe) notificationsUnsubscribe();
+        const notificationsRef = collection(db, "farmers", user.uid, "notifications");
+        const q = query(notificationsRef, orderBy("timestamp", "desc"));
+        notificationsUnsubscribe = onSnapshot(q, (snapshot) => {
+          let unreadCount = 0;
+          notificationList.innerHTML = "";
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const item = document.createElement("div");
+            item.className = "notification-item" + (data.read ? "" : " unread");
+            item.innerHTML = `
+              <span style="flex:1;">${data.message}</span>
+              <span style="font-size:0.85em;color:#888;margin-left:8px;">${new Date(data.timestamp).toLocaleString()}</span>
+              <button class="remove-notification" data-id="${docSnap.id}" title="Remove notification">&times;</button>
+            `;
+            notificationList.appendChild(item);
+            if (!data.read) unreadCount++;
+          });
+          // Badge
+          if (unreadCount > 0) {
+            notificationBadge.textContent = unreadCount;
+            notificationBadge.style.display = "inline-block";
+          } else {
+            notificationBadge.style.display = "none";
+          }
+          // If no notifications
+          if (snapshot.size === 0) {
+            notificationList.innerHTML = "<div class='notification-item'>No notifications yet.</div>";
+          }
+          // Remove notification logic
+          notificationList.querySelectorAll(".remove-notification").forEach(btn => {
+            btn.onclick = async function (e) {
+              e.stopPropagation();
+              const id = this.getAttribute("data-id");
+              await import("https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js").then(async ({ deleteDoc }) => {
+                await deleteDoc(doc(collection(db, "farmers", currentUserId, "notifications"), id));
+              });
+            };
+          });
+        });
+      });
+
+      // Mark all as read
+      markAllReadBtn.addEventListener("click", async () => {
+        if (!currentUserId) return;
+        const notificationsRef = collection(db, "farmers", currentUserId, "notifications");
+        const snap = await getDocs(notificationsRef);
+        const batch = writeBatch(db);
+        snap.forEach((docSnap) => {
+          const notifDocRef = doc(db, "farmers", currentUserId, "notifications", docSnap.id);
+          batch.delete(notifDocRef);
+        });
+        await batch.commit();
+      });
+
+      function updateFarmerOverviewAndChart(orders) {
+        let totalSold = 0, totalEarnings = 0, totalOrders = orders.length;
+        const dateMap = {};
+
+        orders.forEach(order => {
+          // Only count orders that are placed or completed
+          if (order.status === "placed" || order.status === "completed") {
+            totalSold += order.quantity || 0;
+            totalEarnings += order.price || 0;
+            const date = new Date(order.createdAt).toLocaleDateString();
+            dateMap[date] = (dateMap[date] || 0) + (order.price || 0);
+          }
+        });
+
+        // Update overview cards
+        document.getElementById("total-stubble-sold").textContent = totalSold;
+        document.getElementById("total-earnings").textContent = `₹${totalEarnings}`;
+        document.getElementById("total-orders").textContent = totalOrders;
+
+        // Update chart
+        const ctx = document.getElementById('transactions-chart').getContext('2d');
+        if (window.transactionChart) window.transactionChart.destroy();
+        window.transactionChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(dateMap),
+            datasets: [{
+              label: 'Earnings (₹)',
+              data: Object.values(dateMap),
+              backgroundColor: 'rgba(76, 175, 80, 0.6)',
+              borderColor: 'rgba(76, 175, 80, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      }
+
+      function updateFarmerOrdersUI(orders) {
+        const ordersSection = document.getElementById("section-orders");
+        if (!ordersSection) return;
+
+        // Only render the heading once
+        let html = `<h2>Orders</h2>`;
+
+        // Check screen width
+        const isMobile = window.innerWidth <= 700;
+
+        if (!isMobile) {
+          // Table for desktop
+          html += `
+            <div class="orders-table-wrapper" style="overflow-x:auto;">
+              <table class="orders-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Stubble Type</th>
+                    <th>Quantity (tons)</th>
+                    <th>Price (₹)</th>
+                    <th>Status</th>
+                    <th>Buyer</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+          `;
+          if (orders.length === 0) {
+            html += `<tr><td colspan="7" style="text-align:center;">No orders yet.</td></tr>`;
+          } else {
+            for (const order of orders) {
+              html += `
+                <tr>
+                  <td data-label="Order ID">${order.id}</td>
+                  <td data-label="Stubble Type">${order.stubbleType || ""}</td>
+                  <td data-label="Quantity">${order.quantity}</td>
+                  <td data-label="Price">₹${order.price}</td>
+                  <td data-label="Status">
+                    <span style="padding:2px 8px;border-radius:6px;font-weight:600;
+                      background:${order.status === "completed" ? "#e8f5e9" : "#fffde7"};
+                      color:${order.status === "completed" ? "#388e3c" : "#fbc02d"};">
+                      ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </span>
+                  </td>
+                  <td data-label="Buyer">${order.companyName || order.manufacturerId || ""}</td>
+                  <td data-label="Date">${new Date(order.createdAt).toLocaleString()}</td>
+                </tr>
+              `;
+            }
+          }
+          html += `</tbody></table></div>`;
+        } else {
+          // Card list for mobile
+          html += `<div class="order-card-list">`;
+          if (orders.length === 0) {
+            html += `<div style="text-align:center;">No orders yet.</div>`;
+          } else {
+            for (const order of orders) {
+              html += `
+                <div class="order-card">
+                  <div class="order-status ${order.status}">
+                    ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  </div>
+                  <div><span class="order-label">Order ID:</span> ${order.id}</div>
+                  <div><span class="order-label">Stubble Type:</span> ${order.stubbleType || ""}</div>
+                  <div><span class="order-label">Quantity:</span> ${order.quantity} tons</div>
+                  <div><span class="order-label">Price:</span> ₹${order.price}</div>
+                  <div><span class="order-label">Buyer</span> ${order.companyName || order.manufacturerId || ""}</div>
+                  <div><span class="order-label">Date:</span> ${new Date(order.createdAt).toLocaleString()}</div>
+                </div>
+              `;
+            }
+          }
+          html += `</div>`;
+        }
+
+        ordersSection.innerHTML = html;
+      }
+
+      // Optional: Re-render on window resize to switch layouts dynamically
+      window.addEventListener('resize', () => {
+        // You need to keep the latest orders in a variable to re-render
+        if (window.latestOrdersForFarmer) {
+          updateFarmerOrdersUI(window.latestOrdersForFarmer);
+        }
+      });
+
+      function listenToFarmerOrders(farmerId) {
+        const ordersRef = collection(db, "orders");
+        const q = query(ordersRef, where("farmerId", "==", farmerId));
+        onSnapshot(q, async (snapshot) => {
+          const orders = [];
+          for (const docSnap of snapshot.docs) {
+            const order = docSnap.data();
+            // Optionally fetch stubble type
+            let stubbleType = "";
+            if (order.stubbleId) {
+              const stubDoc = await getDoc(doc(db, "stubble", order.stubbleId));
+              if (stubDoc.exists()) stubbleType = stubDoc.data().type;
+            }
+            // Fetch company name from manufacturer profile
+            let companyName = "";
+            if (order.manufacturerId) {
+              const manuDoc = await getDoc(doc(db, "manufacturers", order.manufacturerId));
+              if (manuDoc.exists()) {
+                companyName = manuDoc.data().companyName || manuDoc.data().name || "";
+              }
+            }
+            orders.push({ id: docSnap.id, ...order, stubbleType, companyName });
+          }
+
+          // Sort orders by createdAt descending (newest first)
+          orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+          window.latestOrdersForFarmer = orders; // Store for re-rendering on resize
+          updateFarmerOrdersUI(orders);
+          updateFarmerOverviewAndChart(orders);
+        });
+      }
+
+      function listenToStubbleUploads(farmerId) {
+        const farmerRef = doc(db, "farmers", farmerId);
+        const stubbleCol = collection(farmerRef, "stubble");
+        let stubbleFirstLoad = true; // <-- local to this function
+
+        onSnapshot(stubbleCol, (snap) => {
+          const stubbleList = document.getElementById("stubble-list");
+          if (stubbleFirstLoad) {
+            stubbleList.innerHTML = "<div>Loading...</div>";
+          }
+
+          const stubbleArray = [];
+          snap.forEach(docSnap => {
+            const stubble = docSnap.data();
+            stubbleArray.push(stubble);
+          });
+
+          // Only update UI after first real data arrives
+          if (stubbleFirstLoad) {
+            stubbleFirstLoad = false;
+            // If still empty after first load, show "No stubble uploads yet."
+            if (stubbleArray.length === 0) {
+              stubbleList.innerHTML = `
+                <div style="padding:32px 0;text-align:center;color:#888;font-size:1.2em;">
+                  <i class="fas fa-leaf" style="font-size:2em;color:#bdbdbd;margin-bottom:8px;"></i><br>
+                  <b>No stubble available for sale at the moment.</b>
+                  <div style="margin-top:8px;font-size:0.95em;">Upload new stubble to get started!</div>
+                </div>
+              `;
+              renderTransactionChart([]);
+              const totalAvailableEl = document.getElementById("total-stubble-available");
+              if (totalAvailableEl) totalAvailableEl.textContent = 0;
+              return;
+            }
+          }
+
+          // Now render the stubble list and update available stubble
+          stubbleList.innerHTML = "";
+          stubbleArray.forEach(stubble => {
+            const div = document.createElement("div");
+            div.className = "stubble-item";
+            div.innerHTML = `
+              <h4>${stubble.type} (${stubble.quantity} tons)</h4>
+              <p>Price: ₹${stubble.price} per ton</p>
+              <p>Status: <span class="stubble-status">${stubble.status}</span></p>
+              <div style="display:flex;gap:8px;">
+                ${stubble.images && stubble.images.length ? stubble.images.map(img => `<img src="${img}" style="width:40px;height:40px;border-radius:4px;object-fit:cover;">`).join('') : ""}
+              </div>
+              <button class="remove-stubble" data-id="${stubble.stubbleId || ''}">Remove</button>
+            `;
+            stubbleList.appendChild(div);
+          });
+
+          // Calculate total available stubble for sale (robust)
+          const totalAvailable = stubbleArray
+            .filter(stubble => (stubble.status || '').toLowerCase().trim() === "available")
+            .reduce((sum, stubble) => sum + (parseFloat(stubble.quantity) || 0), 0);
+
+          const totalAvailableEl = document.getElementById("total-stubble-available");
+          if (totalAvailableEl) {
+            totalAvailableEl.textContent = totalAvailable;
+          }
+
+          // Render the chart with stubbleArray
+          renderTransactionChart(stubbleArray);
+
+          // Remove handler
+          stubbleList.querySelectorAll(".remove-stubble").forEach(btn => {
+            btn.onclick = async function () {
+              const id = this.getAttribute("data-id");
+              if (!confirm("Remove this stubble upload?")) return;
+              await import("https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js").then(async ({ deleteDoc, addDoc, collection }) => {
+                await deleteDoc(doc(collection(farmerRef, "stubble"), id));
+                await deleteDoc(doc(db, "stubble", id));
+                // Add notification
+                const notificationsRef = collection(db, "farmers", farmerId, "notifications");
+                await addDoc(notificationsRef, {
+                  message: "A stubble upload was removed.",
+                  timestamp: new Date().toISOString(),
+                  read: false
+                });
+              });
+              // No need to call loadStubbleUploads(); onSnapshot will auto-update
+            };
+          });
+        });
+      }
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) listenToStubbleUploads(user.uid);
+      });
+    </script>
+  </body>
+</html>

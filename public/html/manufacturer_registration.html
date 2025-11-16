@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manufacturer Profile Setup</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/manufacturer-profile.css">
+    <link rel="icon" type="image/png" href="../assests/logo_green.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Sign Out Button Styles */
+        .sign-out-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: transparent;
+            color: #666;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .sign-out-btn:hover {
+            background-color: #f5f5f5;
+            color: #d32f2f;
+            border-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sign Out Button -->
+    <button id="signOutBtn" class="sign-out-btn">
+        <i class="fas fa-sign-out-alt"></i> Sign Out
+    </button>
+    
+    <!-- Loading spinner while checking user data -->
+    <div id="loading-container" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading your profile data...</p>
+    </div>
+
+    <div id="profile-setup-container" class="profile-setup-container">
+        <h1 class="profile-setup-title">Manufacturer Profile Setup</h1>
+        
+        <div class="progress-bar" data-step="1">
+            <div class="progress-step active">1</div>
+            <div class="progress-step">2</div>
+            <div class="progress-step">3</div>
+        </div>
+
+        <!-- Step 1: Contact & Business Information -->
+        <div class="step-container active" id="step1">
+            <div class="form-group">
+                <label for="name">Full Name / Representative Name</label>
+                <div class="edit-name-group">
+                    <input type="text" id="name" name="name" required readonly>
+                    <button class="edit-button" id="editNameBtn">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+                <div class="error-message" id="name-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="mobile">Mobile Number</label>
+                <div class="mobile-input-container">
+                    <div class="phone-input-group">
+                        <div class="country-code">
+                            <span class="flag">🇮🇳</span>
+                            <span>+91</span>
+                        </div>
+                        <input type="tel" id="mobile" name="mobile" class="phone-number" 
+                               pattern="[0-9]{10}" maxlength="10" required
+                               placeholder="Enter 10 digit mobile number">
+                    </div>
+                </div>
+                <div class="error-message" id="mobile-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="business-name">Business Name / Company Name</label>
+                <input type="text" id="business-name" name="business-name" required>
+                <div class="error-message" id="business-name-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="business-type">Business Type</label>
+                <select id="business-type" name="business-type" required>
+                    <option value="">Select Business Type</option>
+                    <option value="paper">Paper Manufacturer</option>
+                    <option value="biofuel">Biofuel Company</option>
+                    <option value="pulp">Pulp Processor</option>
+                    <option value="other">Other</option>
+                </select>
+                <div class="error-message" id="business-type-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="gst">Business Registration Number / GST Number (Optional)</label>
+                <input type="text" id="gst" name="gst" placeholder="Enter GST number if available">
+                <div class="error-message" id="gst-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="company-logo">Company Logo (Optional)</label>
+                <div class="photo-upload" id="logo-drop-zone">
+                    <i class="fas fa-building"></i>
+                    <p>Click to upload or drop logo here</p>
+                    <input type="file" id="logo-input" accept="image/*" style="display: none">
+                    <div class="photo-preview-container" id="logo-preview-container" style="display: none;">
+                        <img id="logo-preview" class="photo-preview">
+                        <button type="button" class="photo-remove-btn" id="remove-logo">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" id="step1Next" disabled>Next</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Business Address & Location -->
+        <div class="step-container" id="step2">
+            <div class="form-group">
+                <label for="state">State</label>
+                <select id="state" name="state" required>
+                    <option value="">Select State</option>
+                    <!-- States will be populated from API -->
+                </select>
+                <div class="error-message" id="state-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="district">District</label>
+                <select id="district" name="district" required disabled>
+                    <option value="">Select District</option>
+                    <!-- Districts will be populated based on state selection -->
+                </select>
+                <div class="error-message" id="district-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="city">Town/City</label>
+                <input type="text" id="city" name="city" required>
+                <div class="error-message" id="city-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="pincode">Pincode</label>
+                <div class="form-control">
+                    <input type="text" id="pincode" name="pincode" pattern="[0-9]{6}" maxlength="6" placeholder="Enter 6 digit pincode">
+                    <div class="field-feedback" id="pincode-feedback"></div>
+                </div>
+                <div class="error-message" id="pincode-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Factory Location (Optional)</label>
+                <div class="coordinates-group">
+                    <input type="text" id="coordinates" readonly placeholder="Latitude, Longitude">
+                    <button class="btn btn-secondary" type="button" id="getLocationBtn">
+                        <i class="fas fa-map-marker-alt"></i> Get Location
+                    </button>
+                </div>
+                <div id="coordinates-status" class="coordinates-display">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" type="button" onclick="previousStep(2)">Previous</button>
+                <button class="btn btn-primary" id="step2Next" disabled>Next</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Manufacturing Requirements -->
+        <div class="step-container" id="step3">
+            <div class="form-group">
+                <label>Types of Stubble Preferred</label>
+                <div class="stubble-checkbox-group">
+                    <div class="stubble-checkbox">
+                        <input type="checkbox" id="wheat" name="stubble" value="wheat">
+                        <label for="wheat">Wheat Stubble</label>
+                    </div>
+                    <div class="stubble-checkbox">
+                        <input type="checkbox" id="rice" name="stubble" value="rice">
+                        <label for="rice">Rice Stubble</label>
+                    </div>
+                    <div class="stubble-checkbox">
+                        <input type="checkbox" id="sugarcane" name="stubble" value="sugarcane">
+                        <label for="sugarcane">Sugarcane Stubble</label>
+                    </div>
+                </div>
+                <div class="error-message" id="stubble-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="monthly-requirement">Approximate Monthly Stubble Requirement (in tons)</label>
+                <input type="number" id="monthly-requirement" name="monthly-requirement" min="1" step="0.1" required>
+                <div class="error-message" id="monthly-requirement-error"></div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" type="button" onclick="previousStep(3)">Previous</button>
+                <button class="btn btn-primary" id="submitBtn" disabled>Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../js/manufacturer-registration.js"></script>
+    
+    <!-- Add sign out functionality -->
+    <script type="module">
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+        
+        document.getElementById('signOutBtn').addEventListener('click', async () => {
+            try {
+                const auth = getAuth();
+                await signOut(auth);
+                window.location.href = '../index.html'; // Redirect to home page after sign out
+            } catch (error) {
+                console.error('Error signing out:', error);
+                alert('Failed to sign out. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

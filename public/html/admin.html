@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Chaff</title>
+    <link rel="icon" href="../assests/logo_green.png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/admin.css" />
+    <style>
+        body {
+            background: #f5f6fa;
+        }
+
+        .navbar {
+            min-height: 64px;
+            height: 64px;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 64px;
+            /* Start after navbar */
+            bottom: 0;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.07);
+            z-index: 1000;
+            /* Remove padding-top */
+            transition: left 0.3s;
+        }
+
+        .sidebar .sidebar-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px 0 12px 0;
+        }
+
+        .sidebar .sidebar-btn {
+            width: 100%;
+            border: none;
+            background: none;
+            padding: 16px 24px;
+            text-align: left;
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 500;
+            border-left: 4px solid transparent;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .sidebar .sidebar-btn.active,
+        .sidebar .sidebar-btn:hover {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            color: #219150;
+        }
+
+        .main-content {
+            margin-left: 220px;
+            padding: 32px 24px 24px 24px;
+            min-height: 100vh;
+            transition: margin-left 0.3s;
+            padding-top: 64px;
+        }
+
+        .section-content {
+            display: none;
+        }
+
+        .section-content.active-section {
+            display: block;
+        }
+
+        /* Hamburger styles */
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #333;
+            margin-right: 16px;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                left: -240px;
+                width: 220px;
+                transition: left 0.3s;
+            }
+
+            .sidebar.open {
+                left: 0;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 64px;
+            }
+
+            .hamburger {
+                display: inline-block;
+            }
+
+            .sidebar-backdrop {
+                display: none;
+                position: fixed;
+                top: 64px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.25);
+                z-index: 999;
+            }
+
+            .sidebar-backdrop.active {
+                display: block;
+            }
+        }
+
+        /* Stats row: center and add spacing */
+        #adminStats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 32px 24px;
+            margin-bottom: 32px;
+            margin-top: 8px;
+        }
+
+        /* Stats card: modern look */
+        .stats-card {
+            min-width: 180px;
+            max-width: 220px;
+            flex: 1 1 180px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(76, 175, 80, 0.10);
+            border: 1px solid #e0e0e0;
+            padding: 28px 18px 20px 18px;
+            text-align: center;
+            margin: 0;
+            transition: box-shadow 0.2s, transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stats-card:hover {
+            box-shadow: 0 8px 32px rgba(76, 175, 80, 0.18);
+            transform: translateY(-4px) scale(1.03);
+        }
+
+        .stats-card .card-title {
+            font-size: 1.1rem;
+            color: #219150;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: 0.01em;
+        }
+
+        .stats-card .card-text {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #222;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        @media (max-width: 1200px) {
+            #adminStats {
+                gap: 18px 12px;
+            }
+
+            .stats-card {
+                min-width: 140px;
+                max-width: 180px;
+                padding: 18px 8px 14px 8px;
+            }
+
+            .stats-card .card-title {
+                font-size: 1rem;
+            }
+
+            .stats-card .card-text {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 900px) {
+            #adminStats {
+                flex-wrap: wrap;
+                gap: 12px 0;
+            }
+
+            .stats-card {
+                min-width: 120px;
+                max-width: 100vw;
+                padding: 12px 4px 10px 4px;
+            }
+        }
+
+        /* MOBILE: stack cards vertically */
+        @media (max-width: 700px) {
+            #adminStats {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+            }
+
+            .stats-card {
+                max-width: 100%;
+                min-width: 0;
+                width: 100%;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm"
+        style="z-index:1100; min-height:64px;">
+        <div class="container-fluid px-4" style="max-width: 100vw;">
+            <div class="d-flex align-items-center flex-grow-1" style="min-width:0;">
+                <!-- Hamburger for mobile -->
+                <button class="hamburger" id="sidebar-toggle" aria-label="Open sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a class="navbar-brand" href="../index.html">
+                    <img src="../assests/logo_green.png" alt="Chaff" height="50" />
+                </a>
+                <h1 class="text mb-0 ms-3"
+                    style="font-size:2rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-grow:1;">
+                    Admin Dashboard
+                </h1>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar backdrop for mobile -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <img src="../assests/logo_green.png" alt="Chaff" height="40" />
+        </div>
+        <button class="sidebar-btn active" data-section="stats"><i class="fas fa-chart-bar"></i> Stats</button>
+        <button class="sidebar-btn" data-section="contacts"><i class="fas fa-envelope"></i> Contact Submissions</button>
+        <button class="sidebar-btn" data-section="orders"><i class="fas fa-edit"></i> Update Order Status</button>
+        <button class="sidebar-btn signout-btn mt-4" id="sidebar-signout"
+            style="color:#fff; background:#d32f2f; border-radius:8px; font-weight:600;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Stats Section -->
+        <section class="section-content active-section" id="statsSection">
+            <div class="container-fluid">
+                <div id="adminStats">
+                    <div class="stats-card">
+                        <div class="card-title">Total Turnover</div>
+                        <div class="card-text" id="totalTurnover">₹0</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="card-title">Farmers</div>
+                        <div class="card-text" id="totalFarmers">0</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="card-title">Manufacturers</div>
+                        <div class="card-text" id="totalManufacturers">0</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="card-title">Stubble Sold (tons)</div>
+                        <div class="card-text" id="totalStubbleSold">0</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="card-title">Top Buyer</div>
+                        <div class="card-text" id="topBuyer">-</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="card-title">Top Seller</div>
+                        <div class="card-text" id="topSeller">-</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Contact Form Submissions Section -->
+        <section class="section-content" id="contactsSection">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Contact Form Submissions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Message</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contactSubmissionsTable">
+                                <!-- Contact submissions will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Update Order Status Section -->
+        <section class="section-content" id="ordersSection">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Update Order Status</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="orderIdInput" class="form-label">Order ID</label>
+                        <input type="text" id="orderIdInput" class="form-control" placeholder="Enter Order ID">
+                        <button class="btn btn-primary mt-2" id="fetchOrderBtn">Fetch Order</button>
+                    </div>
+                    <div id="noOrderDetails" style="color:red; margin-bottom:10px;"></div>
+                    <div id="orderDetails" style="display:none;">
+                        <h5>Order Details</h5>
+                        <div id="orderInfo"></div>
+                        <div class="mb-3">
+                            <label for="orderStatusSelect" class="form-label">Update Status</label>
+                            <select id="orderStatusSelect" class="form-select">
+                                <option value="picked">Picked</option>
+                                <option value="in transit">In Transit</option>
+                                <option value="out for delivery">Out for Delivery</option>
+                                <option value="delivered">Delivered</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-success" id="updateOrderStatusBtn">Update Status</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+        import { db } from '../js/firebase-config.js';
+        import {
+            collection, doc, getDoc, getDocs, updateDoc, addDoc, query, where, orderBy, onSnapshot
+        } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+        async function loadAdminStats() {
+            // Fetch all orders
+            const ordersSnap = await getDocs(collection(db, 'orders'));
+            let totalTurnover = 0;
+            let totalStubbleSold = 0;
+            const buyerTotals = {};
+            const sellerTotals = {}; // For price
+            const sellerQuantities = {}; // For quantity
+
+            ordersSnap.forEach(docSnap => {
+                const order = docSnap.data();
+                const price = Number(order.price) || 0;
+                const quantity = Number(order.quantity) || 0;
+                totalTurnover += price;
+                totalStubbleSold += quantity;
+
+                // Buyer (manufacturer)
+                if (order.manufacturerId) {
+                    buyerTotals[order.manufacturerId] = (buyerTotals[order.manufacturerId] || 0) + price;
+                }
+                // Seller (farmer)
+                if (order.farmerId) {
+                    sellerTotals[order.farmerId] = (sellerTotals[order.farmerId] || 0) + price;
+                    sellerQuantities[order.farmerId] = (sellerQuantities[order.farmerId] || 0) + quantity;
+                }
+            });
+
+            // Fetch all farmers and manufacturers
+            const farmersSnap = await getDocs(collection(db, 'farmers'));
+            const manufacturersSnap = await getDocs(collection(db, 'manufacturers'));
+
+            // Find top buyer by price
+            let topBuyerId = Object.keys(buyerTotals).reduce((a, b) => buyerTotals[a] > buyerTotals[b] ? a : b, null);
+            // Find top seller by quantity
+            let topSellerId = Object.keys(sellerQuantities).reduce((a, b) => sellerQuantities[a] > sellerQuantities[b] ? a : b, null);
+
+            let topBuyer = "-";
+            let topSeller = "-";
+            if (topBuyerId) {
+                const buyerDoc = await getDoc(doc(db, 'manufacturers', topBuyerId));
+                if (buyerDoc.exists()) {
+                    const buyerData = buyerDoc.data();
+                    topBuyer = buyerData.businessName || buyerData.name || "-";
+                }
+            }
+            if (topSellerId) {
+                topSeller = await getUserNameById("farmer", topSellerId);
+            }
+
+            // Update UI
+            document.getElementById('totalTurnover').textContent = `₹${totalTurnover.toLocaleString()}`;
+            document.getElementById('totalFarmers').textContent = farmersSnap.size;
+            document.getElementById('totalManufacturers').textContent = manufacturersSnap.size;
+            document.getElementById('totalStubbleSold').textContent = totalStubbleSold;
+            document.getElementById('topBuyer').textContent = topBuyer;
+            document.getElementById('topSeller').textContent = topSeller;
+        }
+
+        // Call this when the page loads
+        window.addEventListener('DOMContentLoaded', loadAdminStats);
+
+        // Helper to get user name by id and role
+        async function getUserNameById(role, id) {
+            if (!id) return "-";
+            const docRef = doc(db, role === "farmer" ? "farmers" : "manufacturers", id);
+            const userDoc = await getDoc(docRef);
+            if (!userDoc.exists()) return id;
+            const data = userDoc.data();
+            
+            if (role === "farmer") {
+                // Check all possible locations with consistent casing
+                return data.fullName || // standardized field
+                       data.personalInfo?.fullName || // nested in personalInfo
+                       data.fullname || // legacy field
+                       data.name ||
+                       data.displayName ||
+                       id;
+            }
+            
+            if (role === "manufacturer") {
+                return data.businessName || data.name || id;
+            }
+            
+            return id;
+        }
+
+        // ... existing code ...
+        // Fetch order and show details
+        document.getElementById('fetchOrderBtn').onclick = async function () {
+            const fetchBtn = document.getElementById('fetchOrderBtn');
+            const originalText = fetchBtn.textContent;
+            fetchBtn.disabled = true;
+            fetchBtn.textContent = "Loading...";
+
+            const orderId = document.getElementById('orderIdInput').value.trim();
+            const orderDetailsDiv = document.getElementById('orderDetails');
+            const orderInfoDiv = document.getElementById('orderInfo');
+            const noDetailsDiv = document.getElementById('noOrderDetails');
+            noDetailsDiv.textContent = ""; // Clear previous message
+
+            orderDetailsDiv.style.display = "none";
+            orderInfoDiv.innerHTML = "";
+
+            if (!orderId) {
+                noDetailsDiv.textContent = "Please enter an Order ID.";
+                fetchBtn.disabled = false;
+                fetchBtn.textContent = originalText;
+                return;
+            }
+
+            const orderDoc = await getDoc(doc(db, "orders", orderId));
+            if (!orderDoc.exists()) {
+                noDetailsDiv.textContent = "No details found.";
+                fetchBtn.disabled = false;
+                fetchBtn.textContent = originalText;
+                return;
+            }
+            noDetailsDiv.textContent = ""; // Clear the message if found
+
+            const order = orderDoc.data();
+
+            // Fetch farmer and manufacturer names
+            const farmerName = await getUserNameById("farmer", order.farmerId);
+            const manufacturerName = await getUserNameById("manufacturer", order.manufacturerId);
+
+            orderInfoDiv.innerHTML = `
+                <div><b>Order ID:</b> ${orderId}</div>
+                <div><b>Status:</b> ${order.status}</div>
+                <div><b>Stubble Type:</b> ${order.stubbleType || "-"}</div>
+                <div><b>Quantity:</b> ${order.quantity} tons</div>
+                <div><b>Price:</b> ₹${order.price}</div>
+                <div><b>Farmer:</b> ${farmerName} (${order.farmerId})</div>
+                <div><b>Manufacturer:</b> ${manufacturerName} (${order.manufacturerId})</div>
+                <div><b>Date:</b> ${order.createdAt ? new Date(order.createdAt).toLocaleString() : "-"}</div>
+            `;
+
+            // Set current status in select
+            document.getElementById('orderStatusSelect').value = order.status;
+
+            orderDetailsDiv.style.display = "block";
+            fetchBtn.disabled = false;
+            fetchBtn.textContent = originalText;
+        };
+        // ... existing code ...
+
+        // Update order status and propagate changes
+        document.getElementById('updateOrderStatusBtn').onclick = async function () {
+            const orderId = document.getElementById('orderIdInput').value.trim();
+            const newStatus = document.getElementById('orderStatusSelect').value;
+            if (!orderId) return alert("No order loaded.");
+
+            const orderRef = doc(db, "orders", orderId);
+            const orderDoc = await getDoc(orderRef);
+            if (!orderDoc.exists()) return alert("Order not found.");
+            const order = orderDoc.data();
+
+            // Update main order
+            await updateDoc(orderRef, { status: newStatus, updatedAt: new Date().toISOString() });
+
+            // Update in farmer's subcollection (if exists)
+            if (order.farmerId) {
+                try {
+                    const farmerOrderRef = doc(db, "farmers", order.farmerId, "orders", orderId);
+                    const farmerOrderDoc = await getDoc(farmerOrderRef);
+                    if (farmerOrderDoc.exists()) {
+                        await updateDoc(farmerOrderRef, { status: newStatus, updatedAt: new Date().toISOString() });
+                    }
+                } catch (e) { /* ignore if subcollection doesn't exist */ }
+            }
+
+            // Update in manufacturer's subcollection (if exists)
+            if (order.manufacturerId) {
+                try {
+                    const manufacturerOrderRef = doc(db, "manufacturers", order.manufacturerId, "orders", orderId);
+                    const manufacturerOrderDoc = await getDoc(manufacturerOrderRef);
+                    if (manufacturerOrderDoc.exists()) {
+                        await updateDoc(manufacturerOrderRef, { status: newStatus, updatedAt: new Date().toISOString() });
+                    }
+                } catch (e) { /* ignore if subcollection doesn't exist */ }
+            }
+
+            // Send notifications if delivered
+            if (newStatus === "delivered") {
+                await notifyOnOrderDelivered(orderId);
+            }
+
+            alert("Order status updated!");
+            document.getElementById('orderDetails').style.display = "none";
+        };
+
+        // Call this function after updating the order status to "delivered"
+        async function notifyOnOrderDelivered(orderId) {
+            const orderRef = doc(db, "orders", orderId);
+            const orderSnap = await getDoc(orderRef);
+            if (!orderSnap.exists()) return;
+            const order = orderSnap.data();
+
+            // 1. Send notification to the farmer
+            if (order.farmerId) {
+                const farmerNotifRef = collection(db, "farmers", order.farmerId, "notifications");
+                await addDoc(farmerNotifRef, {
+                    message: `Your order (ID: ${orderId}) has been delivered!`,
+                    timestamp: new Date().toISOString(),
+                    read: false
+                });
+            }
+
+            // 2. Send notification to the manufacturer
+            if (order.manufacturerId) {
+                await addDoc(collection(db, "notifications"), {
+                    userId: order.manufacturerId,
+                    message: `Your order (ID: ${orderId}) has been delivered!`,
+                    type: "order",
+                    createdAt: new Date().toISOString(),
+                    read: false
+                });
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"></script>
+    <script type="module" src="../js/admin.js"></script>
+    <script>
+        // Sidebar navigation logic
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebarBtns = document.querySelectorAll('.sidebar-btn');
+            const sections = {
+                stats: document.getElementById('statsSection'),
+                contacts: document.getElementById('contactsSection'),
+                orders: document.getElementById('ordersSection')
+            };
+            sidebarBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    // Don't toggle section for logout button
+                    if (btn.id === "sidebar-signout") return;
+                    sidebarBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    Object.values(sections).forEach(sec => sec.classList.remove('active-section'));
+                    const section = btn.getAttribute('data-section');
+                    if (sections[section]) sections[section].classList.add('active-section');
+                    // On mobile, close sidebar after click
+                    if (window.innerWidth <= 900) closeSidebar();
+                });
+            });
+
+            // Hamburger and sidebar mobile logic
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+            function openSidebar() {
+                sidebar.classList.add("open");
+                sidebarBackdrop.classList.add("active");
+            }
+            function closeSidebar() {
+                sidebar.classList.remove("open");
+                sidebarBackdrop.classList.remove("active");
+            }
+            sidebarToggle.addEventListener("click", openSidebar);
+            sidebarBackdrop.addEventListener("click", closeSidebar);
+
+            // Close sidebar on resize if desktop
+            window.addEventListener('resize', function () {
+                if (window.innerWidth > 900) {
+                    sidebar.classList.remove("open");
+                    sidebarBackdrop.classList.remove("active");
+                }
+            });
+
+            // Logout button logic
+            const signOutBtn = document.getElementById("sidebar-signout");
+            if (signOutBtn) {
+                signOutBtn.addEventListener("click", function () {
+                    if (typeof handleLogout === "function") {
+                        handleLogout();
+                    } else {
+                        // fallback: reload or redirect
+                        window.location.href = "../index.html";
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,3173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manufacturer Dashboard</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="icon" type="image/png" href="../assests/logo_green.png" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Playwrite+HU&display=swap");
+
+    :root {
+      --primary-green: #4caf50;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #f5f6fa 0%, #e9ecef 100%);
+      font-family: "Poppins", "Inter", Arial, sans-serif;
+      box-sizing: border-box;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    .navbar {
+      width: 100%;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 64px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 3000;
+    }
+
+    .navbar-left {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      padding-right: 20px;
+      gap: 10px;
+      margin-left: auto;
+      /* Push to the right */
+    }
+
+    .navbar-logo {
+      height: 30px;
+      width: auto;
+    }
+
+    .navbar-appname {
+      font-weight: 700;
+      color: var(--primary-green);
+      font-size: 1.3rem;
+      letter-spacing: 1px;
+      text-transform: lowercase;
+      font-family: "Playwrite HU", sans-serif;
+      display: inline-block;
+    }
+
+    .hamburger {
+      background: none !important;
+      border: none;
+      font-size: 2rem;
+      color: #333;
+      cursor: pointer;
+      transition: transform 0.2s;
+      display: none;
+      /* Hide by default on desktop */
+    }
+
+    .hamburger:hover {
+      color: #333 !important;
+      background: transparent !important;
+      transform: rotate(180deg);
+    }
+
+    @media (max-width: 900px) {
+      .hamburger {
+        display: block;
+        /* Show on mobile */
+        margin-right: 8px;
+      }
+
+      .navbar {
+        padding: 0 8px;
+      }
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.25);
+      z-index: 1999;
+      transition: opacity 0.3s;
+    }
+
+    .sidebar-backdrop.active {
+      display: block;
+      opacity: 1;
+    }
+
+    .dashboard-layout {
+      display: flex;
+      min-height: 100vh;
+      background: transparent;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      padding-top: 64px;
+      /* space for navbar */
+    }
+
+    .sidebar {
+      width: 250px;
+      background: #fff;
+      box-shadow: 2px 0 16px rgba(0, 0, 0, 0.07);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 0 24px 0;
+      min-height: calc(100vh - 64px);
+      position: fixed;
+      left: 0;
+      top: 64px;
+      /* start below navbar */
+      z-index: 2000;
+      gap: 32px;
+      overflow-y: auto;
+      transition: left 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+
+    .sidebar-close {
+      display: none;
+      background: none !important;
+      border: none;
+      font-size: 2rem;
+      color: #333;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      z-index: 2101;
+    }
+
+    .sidebar-close:hover {
+      color: #333 !important;
+      background: transparent !important;
+    }
+
+    .sidebar-profile img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #4caf50;
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+
+    .sidebar-nav {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-btn {
+      background: none;
+      border: none;
+      color: #333;
+      font-size: 1.1rem;
+      padding: 14px 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 180px;
+      text-align: left;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar-btn.active,
+    .sidebar-btn:hover {
+      background: #4caf50;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+      transform: translateX(5px);
+    }
+
+    .signout-btn {
+      margin-top: 32px;
+      background: #f8f9fa;
+      color: #d32f2f;
+      border: 1px solid #eee;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .signout-btn:hover {
+      background: #ffeaea;
+      color: #b71c1c;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 48px 32px 40px 32px;
+      min-width: 0;
+      position: relative;
+      box-sizing: border-box;
+      background: transparent;
+      overflow-y: auto;
+      height: 100vh;
+      margin-left: 250px;
+      max-width: 1200px;
+      margin-right: auto;
+    }
+
+    .dashboard-section {
+      margin-bottom: 40px;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    .dashboard-section h2 {
+      font-size: 2rem;
+      margin-bottom: 24px;
+      color: #333;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+      position: relative;
+    }
+
+    .dashboard-section h2::after {
+      content: "";
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 50px;
+      height: 3px;
+      background: var(--primary-green);
+    }
+
+    .overview-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 24px;
+      width: 100%;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+
+    .overview-card {
+      min-width: 140px;
+      max-width: 220px;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.08);
+      border: 1px solid #e0e0e0;
+      padding: 20px 16px;
+      text-align: center;
+      margin-bottom: 0;
+      transition: box-shadow 0.2s, transform 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .overview-card:hover {
+      box-shadow: 0 10px 30px rgba(76, 175, 80, 0.2);
+      transform: translateY(-5px) scale(1.03);
+    }
+
+    .overview-card h3 {
+      font-size: 1.05rem;
+      margin: 0 0 8px 0;
+      color: #219150;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .overview-card p {
+      font-size: 1.3rem;
+      margin: 0;
+      font-weight: 700;
+      color: #222;
+      line-height: 1.2;
+    }
+
+    .active-section {
+      display: block !important;
+    }
+
+    .section-content {
+      display: none;
+    }
+
+    .stubble-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.08);
+      padding: 18px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .stubble-card img {
+      border-radius: 6px;
+      border: 1px solid #eee;
+      width: 120px;
+      height: 80px;
+      object-fit: cover;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      background: #f5f5f5;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      padding: 7px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      width: 90%;
+    }
+
+    button,
+    .order-btn {
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 15px;
+      margin-top: 5px;
+    }
+
+    button:hover,
+    .order-btn:hover {
+      background: #125ea2;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        left: -260px;
+      }
+
+      .sidebar.open {
+        left: 0;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .sidebar-close {
+        display: block;
+      }
+
+      .main-content {
+        padding: 24px 12px;
+        margin-left: 0;
+        max-width: 100vw;
+      }
+
+      .overview-cards {
+        padding: 0 8px;
+        max-width: 100vw;
+      }
+
+      .overview-card {
+        min-width: 120px;
+        max-width: 48vw;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .sidebar {
+        width: 100vw;
+        left: -100vw;
+      }
+
+      .sidebar.open {
+        left: 0;
+      }
+
+      .sidebar-btn,
+      .signout-btn {
+        width: 90%;
+        font-size: 1.05rem;
+        border-radius: 8px;
+      }
+
+      .main-content {
+        padding: 12px 4px;
+        max-width: 100vw;
+      }
+
+      .overview-card {
+        min-width: 90px;
+        max-width: 98vw;
+      }
+    }
+
+    /* Make sure no button styling affects these */
+    .hamburger:hover,
+    .sidebar-close:hover {
+      background: none !important;
+    }
+
+    /* Profile Edit Form Styles */
+    .edit-profile-form {
+      max-width: 520px;
+      margin: 0 auto;
+      background: var(--background-beige);
+      border-radius: 18px;
+      box-shadow: var(--shadow-md);
+      padding: 32px 24px 18px 24px;
+    }
+
+    .profile-photo-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .profile-photo-container {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      border: 3px solid var(--primary-green);
+      background: #fff;
+    }
+
+    .profile-photo-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .profile-photo-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(37, 190, 135, 0.7);
+      color: #fff;
+      padding: 8px 0;
+      text-align: center;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 0 0 50% 50%;
+      cursor: pointer;
+    }
+
+    .profile-photo-container:hover .profile-photo-overlay {
+      opacity: 1;
+    }
+
+    .change-logo-btn {
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .profile-business-name {
+      font-weight: 600;
+      margin-top: 10px;
+      color: var(--primary-green);
+      font-size: 1.1rem;
+    }
+
+    .form-section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px 18px 10px 18px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .form-section h3 {
+      color: var(--primary-green);
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.1rem;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .form-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 14px;
+      gap: 12px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .form-row label {
+      flex: 0 0 140px;
+      color: var(--text-dark);
+      font-weight: 500;
+      font-size: 1rem;
+    }
+
+    .form-row input,
+    .form-row select {
+      flex: 1;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 1rem;
+      background: var(--background-beige);
+      color: var(--text-dark);
+      transition: border var(--transition-fast);
+    }
+
+    .form-row input:focus,
+    .form-row select:focus {
+      border: 1.5px solid var(--primary-green);
+      outline: none;
+    }
+
+    .get-location-btn {
+      background: var(--primary-green);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-left: 8px;
+      transition: background var(--transition-fast);
+    }
+
+    .get-location-btn:hover {
+      background: #1ea877;
+    }
+
+    .stubble-checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+    }
+
+    .stubble-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--background-beige);
+      border-radius: 6px;
+      padding: 4px 10px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .stubble-checkbox input[type="checkbox"] {
+      accent-color: var(--primary-green);
+    }
+
+    .btn-primary {
+      background: var(--primary-green);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+
+    .btn-primary:disabled {
+      background: #b2dfd3;
+      color: #fff;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--primary-green);
+      border: 1.5px solid var(--primary-green);
+      border-radius: 8px;
+      padding: 10px 22px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+
+    .btn-secondary:hover {
+      background: var(--primary-green);
+      color: #fff;
+    }
+
+    .profile-dates {
+      font-size: 0.92em;
+      color: #888;
+      margin-top: 10px;
+      text-align: right;
+    }
+
+    .message-container {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .message-container.success {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #a5d6a7;
+      display: block;
+    }
+
+    .message-container.error {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #ef9a9a;
+      display: block;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+      margin-bottom: 24px;
+    }
+
+    .coordinates-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .coordinates-group input {
+      flex: 1;
+    }
+
+    .coordinates-display {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .stubble-checkbox-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 5px;
+    }
+
+    .stubble-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stubble-checkbox input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+
+    .stubble-checkbox label {
+      margin: 0;
+      font-weight: normal;
+      cursor: pointer;
+    }
+
+    /* Upload notification styles */
+    .upload-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateY(-100px);
+      opacity: 0;
+      transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+
+    .upload-notification.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .upload-notification.success {
+      background-color: #4caf50;
+    }
+
+    .upload-notification.error {
+      background-color: #f44336;
+    }
+
+    .upload-notification i {
+      font-size: 1.2rem;
+    }
+
+    .sidebar-greeting {
+      font-size: 1.08rem;
+      letter-spacing: 0.5px;
+    }
+
+    .overview-chart {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.08);
+      padding: 24px 18px;
+      margin-top: 24px;
+      margin-bottom: 24px;
+      max-width: 700px;
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      box-sizing: border-box;
+    }
+
+    .notification-badge {
+      background-color: #f44336;
+      color: #fff;
+      font-size: 0.8em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+
+    /* --- Notification List Styles --- */
+    #notificationList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #notificationList li {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.08);
+      margin-bottom: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: box-shadow 0.2s;
+      border: 1px solid #e0e0e0;
+    }
+
+    #notificationList li:hover {
+      box-shadow: 0 6px 18px rgba(76, 175, 80, 0.15);
+      background: #f5fef7;
+    }
+
+    /* Remove Notification Button */
+    .remove-notification {
+      background: #f44336;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-size: 1.1em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 12px;
+      transition: background 0.2s, transform 0.2s;
+      outline: none;
+    }
+
+    .remove-notification:hover,
+    .remove-notification:focus {
+      background: #b71c1c;
+      transform: scale(1.1);
+      color: #fff;
+    }
+
+    /* Notification Actions (button container) */
+    .notification-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
+    /* Notification Section Spacing */
+    #notificationsSection {
+      max-width: 650px;
+      margin-left: auto;
+      margin-right: auto;
+      padding-bottom: 30px;
+    }
+
+    /* Mark All as Read Button */
+    #mark-all-read {
+      background: var(--primary-green, #4caf50);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 14px;
+      font-size: 0.95em;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 0;
+      margin-top: 0;
+      margin-bottom: 0;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.08);
+      min-width: 120px;
+      min-height: 32px;
+      line-height: 1.2;
+    }
+
+    #mark-all-read:hover,
+    #mark-all-read:focus {
+      background: #388e3c;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(76, 175, 80, 0.18);
+    }
+
+    .filter-btn {
+      background: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 18px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.08);
+    }
+
+    .filter-btn.active,
+    .filter-btn:hover {
+      background: #219150;
+      color: #fff;
+    }
+
+    .stubble-slider {
+      position: relative;
+      width: 120px;
+      height: 80px;
+      overflow: hidden;
+      border-radius: 6px;
+      border: 1px solid #eee;
+      margin-bottom: 8px;
+    }
+
+    .stubble-slider img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .stubble-slider img.active {
+      display: block;
+    }
+
+    .slider-nav {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .slider-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #bbb;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .slider-dot.active {
+      background: #4caf50;
+    }
+
+    .order-btn {
+      background: #4caf50 !important;
+      color: #fff !important;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+
+    .order-btn:hover {
+      background: #219150 !important;
+    }
+
+    /* Add for vertical card layout */
+    .stubble-card.vertical-card {
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+      max-width: 900px;
+      margin: 18px auto;
+      box-shadow: 0 4px 18px rgba(76, 175, 80, 0.10);
+      border: 1.5px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 0 0 18px 0;
+      background: #fff;
+      transition: box-shadow 0.2s, transform 0.2s;
+      overflow: hidden;
+    }
+
+    .stubble-info {
+      width: 95%;
+      margin: 18px auto 0 auto;
+      padding: 12px 18px 8px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      font-size: 1.08rem;
+      background: #f8f8f8;
+      border-radius: 10px;
+    }
+
+    .stubble-type {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #219150;
+      margin-bottom: 2px;
+    }
+
+    .stubble-highlights {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      width: 95%;
+      margin: 18px auto 0 auto;
+      padding: 14px 18px;
+      background: #f6faf7;
+      border-radius: 10px;
+      box-shadow: 0 1px 6px rgba(76, 175, 80, 0.07);
+      box-sizing: border-box;
+    }
+
+    .highlight-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px 2px;
+      box-shadow: 0 1px 4px rgba(76, 175, 80, 0.06);
+      border: 1.5px solid #e0e0e0;
+      min-width: 0;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .stubble-slider-outer {
+      width: 100%;
+      padding: 18px 0 0 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .stubble-slider-container {
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 18px;
+    }
+
+    .stubble-slider {
+      width: 100%;
+      max-width: 700px;
+      height: 320px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #eee;
+      margin-bottom: 8px;
+      background: #f8f8f8;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.06);
+    }
+
+    .stubble-slider img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+      border-radius: 10px;
+    }
+
+    .stubble-slider img.active {
+      display: block;
+    }
+
+    .slider-nav {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .slider-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #bbb;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .slider-dot.active {
+      background: #4caf50;
+    }
+
+    .order-btn {
+      margin-top: 12px;
+      width: 70%;
+      max-width: 260px;
+      min-width: 120px;
+      font-size: 1.08rem;
+      padding: 10px 0;
+      border-radius: 8px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #stubbleList {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      margin-top: 18px;
+      padding: 0 24px;
+      /* Add horizontal padding for page sides */
+      max-width: 100vw;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 600px) {
+      .stubble-highlights {
+        gap: 6px;
+        font-size: 0.95em;
+        padding: 10px 4px;
+      }
+
+      .highlight-box {
+        padding: 8px 0;
+      }
+
+      .stubble-info {
+        padding: 10px 6px 6px 6px;
+      }
+
+      .stubble-slider-container {
+        padding: 0 4px;
+      }
+    }
+
+    /* Order Modal Styles */
+    .modal {
+      position: fixed;
+      z-index: 99999;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px 24px;
+      min-width: 320px;
+      max-width: 95vw;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 2rem;
+      color: #888;
+      cursor: pointer;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.25);
+      z-index: -1;
+    }
+
+    .order-modal-step {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(76,175,80,0.08);
+      font-size: 1rem;
+    }
+    .orders-table th, .orders-table td {
+      padding: 12px 10px;
+      text-align: left;
+    }
+    .orders-table th {
+      background: #e8f5e9;
+      color: #219150;
+      font-weight: 600;
+      border-bottom: 2px solid #c8e6c9;
+    }
+    .orders-table tr:nth-child(even) {
+      background: #f7fdf7;
+    }
+    .orders-table tr:nth-child(odd) {
+      background: #fff;
+    }
+    .orders-table td {
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .orders-table tr:last-child td {
+      border-bottom: none;
+    }
+    @media (max-width: 700px) {
+      .orders-table, .orders-table thead, .orders-table tbody, .orders-table th, .orders-table td, .orders-table tr {
+        display: none !important;
+      }
+      .order-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-top: 18px;
+      }
+      .order-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(76,175,80,0.08);
+        padding: 16px 14px;
+        font-size: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-left: 5px solid #4caf50;
+        position: relative;
+      }
+      .order-card .order-status {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        font-size: 0.95em;
+        padding: 2px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        background: #e8f5e9;
+        color: #388e3c;
+      }
+      .order-card .order-status.pending,
+      .order-card .order-status.placed {
+        background: #fffde7;
+        color: #fbc02d;
+      }
+      .order-card .order-status.completed {
+        background: #e8f5e9;
+        color: #388e3c;
+      }
+      .order-card .order-label {
+        font-weight: 600;
+        color: #219150;
+        margin-right: 6px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="navbar-left">
+      <!-- Hamburger only shows on mobile due to CSS -->
+      <button class="hamburger" id="sidebar-toggle" aria-label="Open sidebar">
+        <i class="fas fa-bars"></i>
+      </button>
+      <!-- Logo and chaff text on the left for desktop -->
+      <img src="../assests/logo_green.png" alt="Chaff Logo" class="navbar-logo" />
+      <span class="navbar-appname">chaff</span>
+    </div>
+    <div class="navbar-right">
+      <!-- Empty or can contain user profile info -->
+    </div>
+  </nav>
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+  <div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <button class="sidebar-close" id="sidebar-close" aria-label="Close sidebar">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="sidebar-profile" style="margin-bottom: 10px; text-align:center;">
+        <div id="sidebar-greeting" class="sidebar-greeting"
+          style="margin-bottom: 6px; font-weight:600; color:var(--primary-green);"></div>
+        <img id="sidebar-profile-image" src="https://ui-avatars.com/api/?name=Manufacturer" alt="Profile" />
+      </div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-btn" data-section="overview">
+          <i class="fas fa-home"></i> Overview
+        </button>
+        <button class="sidebar-btn active" data-section="stubble-listing">
+          <i class="fas fa-leaf"></i> Stubble Listings
+        </button>
+        <button class="sidebar-btn" data-section="order-list">
+          <i class="fas fa-shopping-cart"></i> Orders
+        </button>
+        <button class="sidebar-btn" data-section="profile-edit">
+          <i class="fas fa-user-edit"></i> Edit Profile
+        </button>
+        <button class="sidebar-btn" data-section="notifications">
+          <i class="fas fa-bell"></i> Notifications
+          <span id="sidebar-notification-badge" class="notification-badge"
+            style="margin-left:8px;display:none;">0</span>
+        </button>
+        <button class="sidebar-btn signout-btn" id="sidebar-signout">
+          <i class="fas fa-sign-out-alt"></i> Sign Out
+        </button>
+      </nav>
+    </aside>
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Overview Section -->
+      <section class="dashboard-section section-content" id="overviewSection">
+        <h2>Overview</h2>
+        <div class="overview-cards">
+          <div class="overview-card">
+            <h3>Total Stubble Needed</h3>
+            <p id="totalNeeded">-</p>
+          </div>
+          <div class="overview-card">
+            <h3>Total Stubble Ordered</h3>
+            <p id="totalOrdered">-</p>
+          </div>
+          <div class="overview-card">
+            <h3>Total Money Spent</h3>
+            <p id="totalSpent">-</p>
+          </div>
+          <div class="overview-card">
+            <h3>Total Orders</h3>
+            <p id="totalOrders">-</p>
+          </div>
+        </div>
+        <div class="overview-chart">
+          <canvas id="expense-chart"></canvas>
+        </div>
+      </section>
+      <!-- Stubble Listings Section -->
+      <section class="dashboard-section section-content active-section" id="stubbleListingSection">
+        <h2>Available Stubble</h2>
+        <div class="stubble-filters"
+          style="margin-bottom: 18px; display: flex; gap: 10px; flex-wrap: wrap; align-items:center;">
+          <select id="stubbleFilterSelect"
+            style="padding:7px 18px; border-radius:6px; border:1.5px solid #4caf50; font-size:1rem;">
+            <option value="">Show All</option>
+            <option value="nearest">Nearest to Farthest</option>
+            <option value="farthest">Farthest to Nearest</option>
+            <option value="harvest-newest">Harvest Date (Newest)</option>
+            <option value="harvest-oldest">Harvest Date (Oldest)</option>
+            <option value="price-lowest">Price (Lowest)</option>
+            <option value="price-highest">Price (Highest)</option>
+            <option value="tons-highest">Tons (Highest)</option>
+            <option value="tons-lowest">Tons (Lowest)</option>
+          </select>
+          <button id="applyStubbleFilter" class="filter-btn" style="padding:7px 18px;">Apply</button>
+        </div>
+        <div id="stubbleList"></div>
+      </section>
+      <!-- Orders Section -->
+      <section class="dashboard-section section-content" id="orderListSection">
+        <h2>Your Orders</h2>
+        <div id="ordersTable"></div>
+      </section>
+      <!-- Profile Edit Section -->
+      <section class="dashboard-section section-content" id="profileEditSection">
+        <h2>Edit Profile</h2>
+        <form id="profileForm" autocomplete="off" class="edit-profile-form">
+          <!-- Profile Photo & Name -->
+          <div class="profile-photo-section">
+            <div class="profile-photo-container" id="companyLogoContainer">
+              <img id="companyLogoPreview" src="../assests/default-profile.png" alt="Company Logo" />
+              <div class="profile-photo-overlay">
+                <label class="change-logo-btn">
+                  <i class="fas fa-camera"></i>
+                  <input type="file" id="companyLogoInput" accept="image/*" style="display:none;" />
+                  Change Photo
+                </label>
+              </div>
+            </div>
+            <div class="profile-business-name" id="companyNameDisplay"></div>
+          </div>
+
+          <!-- Personal Information -->
+          <div class="form-section">
+            <h3>Personal Information</h3>
+            <div class="form-row">
+              <label for="profileName">Name</label>
+              <input type="text" id="profileName" required />
+            </div>
+            <div class="form-row">
+              <label for="profileMobile">Mobile Number</label>
+              <input type="text" id="profileMobile" required />
+            </div>
+            <div class="form-row">
+              <label for="profileBusiness">Business Name</label>
+              <input type="text" id="profileBusiness" required />
+            </div>
+            <div class="form-row">
+              <label for="profileGst">GST Number</label>
+              <input type="text" id="profileGst" />
+            </div>
+          </div>
+
+          <!-- Location Information -->
+          <div class="form-section">
+            <h3>Location Information</h3>
+            <div class="form-row">
+              <label for="profileState">State</label>
+              <select id="profileState"></select>
+            </div>
+            <div class="form-row">
+              <label for="profileDistrict">District</label>
+              <select id="profileDistrict"></select>
+            </div>
+            <div class="form-row">
+              <label for="profileCity">City</label>
+              <input type="text" id="profileCity" />
+            </div>
+            <div class="form-row">
+              <label for="profilePincode">Pincode</label>
+              <input type="text" id="profilePincode" />
+            </div>
+            <div class="form-row coordinates-group">
+              <label for="profileCoordinates">Coordinates</label>
+              <input type="text" id="profileCoordinates" placeholder="lat, lng" />
+              <button type="button" id="profileGetLocationBtn" class="get-location-btn">Get Location</button>
+            </div>
+            <div id="coordinates-status" class="coordinates-display"></div>
+          </div>
+
+          <!-- Monthly Requirement -->
+          <div class="form-section">
+            <h3>Manufacturing Requirement</h3>
+            <div class="form-row">
+              <label for="profileMonthlyRequirement">Monthly Requirement (tons)</label>
+              <input type="number" id="profileMonthlyRequirement" min="0" />
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button type="submit" id="profileSaveBtn" class="btn-primary" disabled>Save Changes</button>
+            <button type="button" id="profileCancelBtn" class="btn-secondary">Cancel</button>
+          </div>
+          <div id="profile-message" class="message-container"></div>
+          <div class="profile-dates">
+            Created: <span id="profile-created-date"></span> | Last Updated: <span id="profile-updated-date"></span>
+          </div>
+        </form>
+      </section>
+      <!-- Notifications Section -->
+      <section class="dashboard-section section-content" id="notificationsSection">
+        <h2 style="display: flex; align-items: center; gap: 12px;">
+          Notifications
+          <span id="notification-badge" class="notification-badge" style="display:none;">0</span>
+        </h2>
+        <div class="notification-actions">
+          <button id="mark-all-read" class="btn-primary">Mark all as read</button>
+        </div>
+        <ul id="notificationList"></ul>
+      </section>
+    </main>
+  </div>
+  <!-- Order Modal -->
+  <div id="orderModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <button class="modal-close" id="orderModalClose">&times;</button>
+      <div id="orderModalStep1" class="order-modal-step">
+        <h3>Order Stubble</h3>
+        <label>How many tons do you want to order?</label>
+        <input type="number" id="orderQuantityInput" min="0.1" step="0.1" />
+        <button id="orderStep1Next" class="btn-primary">Buy</button>
+      </div>
+      <div id="orderModalStep2" class="order-modal-step" style="display:none;">
+        <h3>Confirm Order</h3>
+        <div id="orderConfirmDetails"></div>
+        <button id="orderStep2Next" class="btn-primary">Confirm</button>
+        <button id="orderStep2Back" class="btn-secondary">Back</button>
+      </div>
+      <div id="orderModalStep3" class="order-modal-step" style="display:none;">
+        <h3>Enter Delivery Address</h3>
+        <input type="text" id="orderAddressInput" placeholder="Address" />
+        <input type="text" id="orderPincodeInput" placeholder="Pincode" />
+        <button id="orderStep3Next" class="btn-primary">Simulate Payment</button>
+        <button id="orderStep3Back" class="btn-secondary">Back</button>
+      </div>
+      <div id="orderModalStep4" class="order-modal-step" style="display:none;">
+        <h3>Payment Successful!</h3>
+        <p>Your order has been placed.</p>
+        <button id="orderStep4Close" class="btn-primary">Close</button>
+      </div>
+    </div>
+    <div id="orderModalBackdrop" class="modal-backdrop"></div>
+  </div>
+  <style>
+    .modal {
+      position: fixed;
+      z-index: 99999;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px 24px;
+      min-width: 320px;
+      max-width: 95vw;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 2rem;
+      color: #888;
+      cursor: pointer;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.25);
+      z-index: -1;
+    }
+
+    .order-modal-step {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+  </style>
+  <script type="module">
+    // Sidebar mobile toggle logic
+    const sidebar = document.getElementById("sidebar");
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+    const sidebarClose = document.getElementById("sidebar-close");
+    function openSidebar() {
+      sidebar.classList.add("open");
+      sidebarBackdrop.classList.add("active");
+    }
+    function closeSidebar() {
+      sidebar.classList.remove("open");
+      sidebarBackdrop.classList.remove("active");
+    }
+    sidebarToggle.addEventListener("click", openSidebar);
+    sidebarBackdrop.addEventListener("click", closeSidebar);
+    sidebarClose.addEventListener("click", closeSidebar);
+
+    // Import Firebase
+    import { auth, db } from '../js/firebase-config.js';
+    import { signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+    import {
+      collection, query, where, getDocs, addDoc, doc, getDoc, updateDoc, onSnapshot, orderBy, startAfter, limit, setDoc
+    } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+
+    const signOutBtn = document.getElementById("sidebar-signout");
+    signOutBtn.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+        // Redirect to login page after successful signout
+        window.location.href = "../index.html";
+      } catch (error) {
+        console.error("Error signing out:", error);
+        alert("Failed to sign out. Please try again.");
+      }
+    });
+
+    // Sidebar navigation logic
+    document.addEventListener('DOMContentLoaded', () => {
+      // Sidebar section switching
+      const sidebarItems = document.querySelectorAll('.sidebar-btn');
+      const sections = {
+        overview: document.getElementById('overviewSection'),
+        'stubble-listing': document.getElementById('stubbleListingSection'),
+        'order-list': document.getElementById('orderListSection'),
+        'profile-edit': document.getElementById('profileEditSection'),
+        notifications: document.getElementById('notificationsSection')
+      };
+
+      sidebarItems.forEach(item => {
+        item.addEventListener('click', () => {
+          sidebarItems.forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+          Object.values(sections).forEach(sec => sec.classList.remove('active-section'));
+          const section = item.getAttribute('data-section');
+          if (sections[section]) sections[section].classList.add('active-section');
+        });
+      });
+
+      // Load all sections
+      loadOverviewStats();
+      loadStubbleListings();
+      loadOrders();
+      loadProfile();
+      listenToNotifications();
+
+      // Load available stubble listings
+      loadStubbleListings();
+
+      // Set up filter change event listener
+      document.getElementById('applyStubbleFilter').addEventListener('click', loadStubbleListings);
+    });
+
+    // Helper: Get current user
+    function getCurrentUser() {
+      return new Promise((resolve, reject) => {
+        const unsub = auth.onAuthStateChanged(user => {
+          unsub();
+          if (user) resolve(user);
+          else reject('Not logged in');
+        });
+      });
+    }
+
+    // Fetch and display overview stats
+    async function loadOverviewStats() {
+      const user = await getCurrentUser();
+      const manufacturerDoc = await getDoc(doc(db, 'manufacturers', user.uid));
+      const manufacturer = manufacturerDoc.exists() ? manufacturerDoc.data() : {};
+
+      // Fetch orders for this manufacturer
+      const ordersSnap = await getDocs(query(
+        collection(db, 'orders'),
+        where('manufacturerId', '==', user.uid),
+        orderBy('createdAt', 'desc') // <-- Add this line
+      ));
+      let totalOrdered = 0, totalSpent = 0, totalOrders = 0;
+      const expenses = [];
+      ordersSnap.forEach(doc => {
+        const order = doc.data();
+        totalOrdered += order.quantity || 0;
+        totalSpent += order.price || 0;
+        totalOrders += 1;
+        expenses.push(order); // Collect for chart
+      });
+
+      // Show stats
+      document.getElementById('totalNeeded').textContent = manufacturer.monthlyRequirement || '-';
+      document.getElementById('totalOrdered').textContent = totalOrdered;
+      document.getElementById('totalSpent').textContent = `₹${totalSpent}`;
+      document.getElementById('totalOrders').textContent = totalOrders;
+
+      // Render the expense chart
+      renderExpenseChart(expenses);
+    }
+
+    function renderExpenseChart(expenses) {
+      const ctx = document.getElementById('expense-chart').getContext('2d');
+      if (window.expenseChart) {
+        window.expenseChart.destroy();
+      }
+
+      // Group expenses by date
+      const dateMap = {};
+      expenses.forEach(exp => {
+        const date = new Date(exp.createdAt).toLocaleDateString();
+        dateMap[date] = (dateMap[date] || 0) + (exp.price || 0);
+      });
+      const labels = Object.keys(dateMap);
+      const data = Object.values(dateMap);
+
+      window.expenseChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Expense Spent (₹)',
+            data,
+            backgroundColor: 'rgba(76, 175, 80, 0.6)',
+            borderColor: 'rgba(76, 175, 80, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    // Helper: Calculate distance (Haversine formula)
+    function getDistance(lat1, lon1, lat2, lon2) {
+      function toRad(x) { return x * Math.PI / 180; }
+      const R = 6371; // km
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    // ... existing code ...
+
+    let currentStubbleFilter = ""; // "" means "show all"
+
+    // Change filter logic to:
+    document.getElementById('applyStubbleFilter').addEventListener('click', function () {
+      currentStubbleFilter = document.getElementById('stubbleFilterSelect').value;
+      loadStubbleListings();
+    });
+
+    // --- STUBBLE LISTING LOGIC ---
+    async function loadStubbleListings() {
+      const user = await getCurrentUser();
+      const manufacturerDoc = await getDoc(doc(db, 'manufacturers', user.uid));
+      const manufacturer = manufacturerDoc.exists() ? manufacturerDoc.data() : {};
+      // Manufacturer coordinates
+      const myCoords = manufacturer.coordinates
+        ? manufacturer.coordinates.split(',').map(s => parseFloat(s.trim()))
+        : null;
+
+      // Query the stubble collection for all available listings
+      const stubbleSnap = await getDocs(query(
+        collection(db, 'stubble'),
+        where('status', '==', 'available')
+      ));
+
+      let stubbles = [];
+      for (const docSnap of stubbleSnap.docs) {
+        const data = docSnap.data();
+        data.id = docSnap.id;
+
+        // --- Fetch farmer's coordinates from their profile ---
+        let farmerCoords = null;
+        if (data.farmerId) {
+          const farmerDoc = await getDoc(doc(db, 'farmers', data.farmerId));
+          if (farmerDoc.exists()) {
+            const farmerData = farmerDoc.data();
+            if (farmerData.location && farmerData.location.coordinates) {
+              farmerCoords = farmerData.location.coordinates.split(',').map(s => parseFloat(s.trim()));
+            }
+          }
+        }
+
+        // Calculate distance if both coordinates are available
+        if (myCoords && farmerCoords && farmerCoords.length === 2 && myCoords.length === 2) {
+          const [lat1, lon1] = myCoords;
+          const [lat2, lon2] = farmerCoords;
+          data.distance = getDistance(lat1, lon1, lat2, lon2);
+        } else {
+          data.distance = null;
+        }
+        stubbles.push(data);
+      }
+
+      // --- FILTERING/SORTING ---
+      if (currentStubbleFilter && currentStubbleFilter !== "") {
+        switch (currentStubbleFilter) {
+          case "nearest":
+            stubbles = stubbles.filter(s => s.distance !== null)
+              .sort((a, b) => a.distance - b.distance);
+            break;
+          case "farthest":
+            stubbles = stubbles.filter(s => s.distance !== null)
+              .sort((a, b) => b.distance - a.distance);
+            break;
+          case "harvest-newest":
+            stubbles = stubbles.sort((a, b) => new Date(b.harvestDate) - new Date(a.harvestDate));
+            break;
+          case "harvest-oldest":
+            stubbles = stubbles.sort((a, b) => new Date(a.harvestDate) - new Date(b.harvestDate));
+            break;
+          case "price-lowest":
+            stubbles = stubbles.sort((a, b) => a.price - b.price);
+            break;
+          case "price-highest":
+            stubbles = stubbles.sort((a, b) => b.price - a.price);
+            break;
+          case "tons-highest":
+            stubbles = stubbles.sort((a, b) => b.quantity - a.quantity);
+            break;
+          case "tons-lowest":
+            stubbles = stubbles.sort((a, b) => a.quantity - b.quantity);
+            break;
+        }
+      }
+      // else: show all, no sorting/filtering
+
+      // --- RENDER ---
+      const listDiv = document.getElementById('stubbleList');
+      listDiv.innerHTML = '';
+      window.lastLoadedStubbles = stubbles; // Store for modal use
+
+      if (stubbles.length === 0) {
+        // Show "No stubble available" message
+        listDiv.innerHTML = `
+          <div style="padding:32px 0;text-align:center;color:#888;font-size:1.2em;">
+            <i class="fas fa-leaf" style="font-size:2em;color:#bdbdbd;margin-bottom:8px;"></i><br>
+            <b>No stubble available to buy at the moment.</b>
+            <div style="margin-top:8px;font-size:0.95em;">Please check back later!</div>
+          </div>
+        `;
+        return; // Don't render cards
+      }
+
+      stubbles.forEach(stub => {
+        // Slideshow logic
+        let sliderHtml = '';
+        if (stub.images && stub.images.length > 1) {
+          sliderHtml = `
+            <div class="stubble-slider" id="slider-${stub.id}">
+              ${stub.images.map((img, idx) => `<img src="${img}" class="${idx === 0 ? 'active' : ''}" data-idx="${idx}">`).join('')}
+            </div>
+            <div class="slider-nav" id="slider-nav-${stub.id}">
+              ${stub.images.map((_, idx) => `<span class="slider-dot${idx === 0 ? ' active' : ''}" data-idx="${idx}"></span>`).join('')}
+            </div>
+          `;
+        } else {
+          const imageUrl = stub.images && stub.images.length > 0 ? stub.images[0] : '';
+          sliderHtml = `<div class="stubble-slider"><img src="${imageUrl}" class="active"></div>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'stubble-card vertical-card';
+        card.innerHTML = `
+          <div class="stubble-slider-outer">
+            <div class="stubble-slider-container">
+              ${sliderHtml}
+            </div>
+          </div>
+          <div class="stubble-info">
+            <div class="stubble-type"><b>Type:</b> ${stub.type}</div>
+            ${stub.description ? `<div><b>Description:</b> ${stub.description}</div>` : ''}
+          </div>
+          <div class="stubble-highlights">
+            <div class="highlight-box">
+              <div class="highlight-label">Available</div>
+              <div class="highlight-value">${stub.quantity} tons</div>
+            </div>
+            <div class="highlight-box">
+              <div class="highlight-label">Price</div>
+              <div class="highlight-value">₹${stub.price}/ton</div>
+            </div>
+            <div class="highlight-box">
+              <div class="highlight-label">Distance</div>
+              <div class="highlight-value">${stub.distance !== null ? stub.distance.toFixed(1) + ' km' : 'N/A'}</div>
+            </div>
+            <div class="highlight-box">
+              <div class="highlight-label">Harvest</div>
+              <div class="highlight-value">${new Date(stub.harvestDate).toLocaleDateString()}</div>
+            </div>
+          </div>
+          <button class="order-btn" data-id="${stub.id}">Order Now</button>
+        `;
+        listDiv.appendChild(card);
+
+        // Slideshow JS
+        if (stub.images && stub.images.length > 1) {
+          const slider = card.querySelector(`#slider-${stub.id}`);
+          const nav = card.querySelector(`#slider-nav-${stub.id}`);
+          if (slider && nav) {
+            nav.querySelectorAll('.slider-dot').forEach(dot => {
+              dot.addEventListener('click', function () {
+                const idx = +this.getAttribute('data-idx');
+                slider.querySelectorAll('img').forEach((img, i) => {
+                  img.classList.toggle('active', i === idx);
+                });
+                nav.querySelectorAll('.slider-dot').forEach((d, i) => {
+                  d.classList.toggle('active', i === idx);
+                });
+              });
+            });
+          }
+        }
+      });
+      attachOrderNowButtons(); // Attach modal logic
+    }
+
+    // ... existing code ...
+
+    // Payment simulation modal (simple prompt for now)
+    function simulatePayment(amount) {
+      return new Promise((resolve) => {
+        if (confirm(`Simulate payment of ₹${amount}? Click OK to proceed.`)) {
+          setTimeout(() => resolve(true), 1000); // Simulate delay
+        } else {
+          resolve(false);
+        }
+      });
+    }
+
+    // Place order logic
+    async function placeOrder(stubbleId, quantity) {
+      const user = await getCurrentUser();
+      const stubbleRef = doc(db, 'stubble_listings', stubbleId);
+      const stubbleDoc = await getDoc(stubbleRef);
+      if (!stubbleDoc.exists()) return alert('Stubble not found!');
+      const stubble = stubbleDoc.data();
+
+      if (quantity > stubble.quantity) {
+        alert('Requested quantity exceeds available stubble.');
+        return;
+      }
+
+      const totalPrice = (stubble.price * quantity) / 1000; // Assuming price is per ton, quantity in kg
+
+      // Simulate payment
+      const paid = await simulatePayment(totalPrice);
+      if (!paid) return;
+
+      // Create order in Firestore
+      const orderData = {
+        manufacturerId: user.uid,
+        farmerId: stubble.farmerId,
+        stubbleId,
+        quantity,
+        price: totalPrice,
+        status: 'placed',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      const orderId = generateOrderId(5);
+      const orderRef = doc(db, 'orders', orderId);
+      await setDoc(orderRef, orderData);
+
+      // Update stubble listing: reduce quantity or mark unavailable
+      let newQty = stubble.quantity - quantity;
+      let newStatus = newQty > 0 ? 'available' : 'completed';
+      await updateDoc(stubbleRef, {
+        quantity: newQty,
+        status: newStatus
+      });
+
+      // Also update in stubble_listings if you have that collection
+      const stubbleListingRef = doc(db, 'stubble_listings', orderModalState.stubble.id);
+      const stubbleListingDoc = await getDoc(stubbleListingRef);
+      if (stubbleListingDoc.exists()) {
+        await updateDoc(stubbleListingRef, {
+          quantity: newQty,
+          status: newStatus
+        });
+      }
+
+      // --- Update in farmer's subcollection ---
+      const farmerStubbleRef = doc(db, 'farmers', stubble.farmerId, 'stubble', orderModalState.stubble.id);
+      const farmerStubbleDoc = await getDoc(farmerStubbleRef);
+      if (farmerStubbleDoc.exists()) {
+        await updateDoc(farmerStubbleRef, {
+          quantity: newQty,
+          status: newStatus
+        });
+      }
+
+      // --- Send notification to farmer's notifications subcollection ---
+      const farmerNotifRef = collection(db, "farmers", stubble.farmerId, "notifications");
+      await addDoc(farmerNotifRef, {
+        message: `You have a new order for your stubble (Order ID: ${orderRef.id})`,
+        timestamp: new Date().toISOString(),
+        read: false
+      });
+
+      // --- Send notification to manufacturer (optional, already present) ---
+      await Promise.all([
+        addDoc(collection(db, 'notifications'), {
+          userId: stubble.farmerId,
+          message: `Your stubble has been ordered (Order ID: ${orderRef.id})`,
+          type: 'order',
+          createdAt: new Date().toISOString(),
+          read: false
+        }),
+        addDoc(collection(db, 'notifications'), {
+          userId: user.uid,
+          message: `Order placed successfully! Order ID: ${orderRef.id}`,
+          type: 'order',
+          createdAt: new Date().toISOString(),
+          read: false
+        })
+      ]);
+
+      showOrderModalStep(4);
+      loadOverviewStats();
+      loadStubbleListings();
+      loadOrders();
+    }
+
+    // Load and display orders
+    async function loadOrders() {
+      const user = await getCurrentUser();
+      const ordersSnap = await getDocs(query(
+        collection(db, 'orders'),
+        where('manufacturerId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+      ));
+
+      // Prepare orders array with stubble type
+      const orders = [];
+      for (const docSnap of ordersSnap.docs) {
+        const order = docSnap.data();
+        // Fetch stubble type from the correct collection
+        let stubbleType = '';
+        if (order.stubbleId) {
+          const stubDoc = await getDoc(doc(db, 'stubble', order.stubbleId));
+          stubbleType = stubDoc.exists() ? stubDoc.data().type : '';
+        }
+        orders.push({
+          id: docSnap.id,
+          ...order,
+          stubbleType
+        });
+      }
+
+      renderManufacturerOrdersUI(orders);
+      window.latestManufacturerOrders = orders;
+    }
+
+    // Responsive render function
+    function renderManufacturerOrdersUI(orders) {
+      const tableDiv = document.getElementById('ordersTable');
+      if (!tableDiv) return;
+
+      // Check screen width
+      const isMobile = window.innerWidth <= 700;
+
+      if (!isMobile) {
+        // Table for desktop
+        let html = `
+          <div class="orders-table-wrapper" style="overflow-x:auto;">
+            <table class="orders-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Stubble Type</th>
+                  <th>Quantity (tons)</th>
+                  <th>Price (₹)</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        if (orders.length === 0) {
+          html += `<tr><td colspan="6" style="text-align:center;">No orders yet.</td></tr>`;
+        } else {
+          for (const order of orders) {
+            html += `
+              <tr>
+                <td data-label="Order ID">${order.id}</td>
+                <td data-label="Stubble Type">${order.stubbleType || ""}</td>
+                <td data-label="Quantity">${order.quantity}</td>
+                <td data-label="Price">₹${order.price}</td>
+                <td data-label="Status">
+                  <span style="padding:2px 8px;border-radius:6px;font-weight:600;
+                    background:${order.status === "completed" ? "#e8f5e9" : "#fffde7"};
+                    color:${order.status === "completed" ? "#388e3c" : "#fbc02d"};">
+                    ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  </span>
+                </td>
+                <td data-label="Date">${new Date(order.createdAt).toLocaleString()}</td>
+              </tr>
+            `;
+          }
+        }
+        html += `</tbody></table></div>`;
+        tableDiv.innerHTML = html;
+      } else {
+        // Card list for mobile
+        let html = `<div class="order-card-list">`;
+        if (orders.length === 0) {
+          html += `<div style="text-align:center;">No orders yet.</div>`;
+        } else {
+          for (const order of orders) {
+            html += `
+              <div class="order-card">
+                <div class="order-status ${order.status}">
+                  ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                </div>
+                <div><span class="order-label">Order ID:</span> ${order.id}</div>
+                <div><span class="order-label">Stubble Type:</span> ${order.stubbleType || ""}</div>
+                <div><span class="order-label">Quantity:</span> ${order.quantity} tons</div>
+                <div><span class="order-label">Price:</span> ₹${order.price}</div>
+                <div><span class="order-label">Date:</span> ${new Date(order.createdAt).toLocaleString()}</div>
+              </div>
+            `;
+          }
+        }
+        html += `</div>`;
+        tableDiv.innerHTML = html;
+      }
+    }
+
+    // Re-render on resize for responsiveness
+    window.addEventListener('resize', () => {
+      // You need to keep the latest orders in a variable to re-render
+      if (window.latestManufacturerOrders) {
+        renderManufacturerOrdersUI(window.latestManufacturerOrders);
+      }
+    });
+
+    // Save profile changes
+    document.getElementById('profileForm').addEventListener('submit', handleProfileSubmit);
+
+    // Load notifications
+    function listenToNotifications() {
+      getCurrentUser().then(user => {
+        const notifList = document.getElementById('notificationList');
+        const notifBadge = document.getElementById('notification-badge');
+        const markAllReadBtn = document.getElementById('mark-all-read');
+        const q = query(
+          collection(db, 'notifications'),
+          where('userId', '==', user.uid),
+          orderBy('createdAt', 'desc') // <-- Add this line
+        );
+        onSnapshot(q, (notifSnap) => {
+          notifList.innerHTML = '';
+          let unreadCount = 0;
+          notifSnap.forEach(doc => {
+            const n = doc.data();
+            const li = document.createElement('li');
+            li.style.display = "flex";
+            li.style.justifyContent = "space-between";
+            li.style.alignItems = "center";
+            li.innerHTML = `
+              <span>[${n.type}] ${n.message} (${new Date(n.createdAt).toLocaleString()})</span>
+              <button class="remove-notification" data-id="${doc.id}" style="margin-left:10px;">&times;</button>
+            `;
+            notifList.appendChild(li);
+            if (!n.read) unreadCount++;
+          });
+
+          // Update badge
+          if (notifBadge) {
+            notifBadge.textContent = unreadCount;
+            notifBadge.style.display = unreadCount > 0 ? "inline-block" : "none";
+          }
+
+          // Remove notification logic
+          notifList.querySelectorAll(".remove-notification").forEach(btn => {
+            btn.onclick = async function () {
+              const id = this.getAttribute("data-id");
+              await import("https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js").then(async ({ deleteDoc }) => {
+                await deleteDoc(doc(collection(db, "notifications"), id));
+              });
+            };
+          });
+
+          // Mark all as read (delete all)
+          if (markAllReadBtn) {
+            markAllReadBtn.onclick = async () => {
+              const snap = await getDocs(q);
+              for (const docSnap of snap.docs) {
+                await import("https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js").then(async ({ deleteDoc }) => {
+                  await deleteDoc(doc(collection(db, "notifications"), docSnap.id));
+                });
+              }
+            };
+          }
+
+          const sidebarNotifBadge = document.getElementById('sidebar-notification-badge');
+          if (sidebarNotifBadge) {
+            sidebarNotifBadge.textContent = unreadCount;
+            sidebarNotifBadge.style.display = unreadCount > 0 ? "inline-block" : "none";
+          }
+        });
+      });
+    }
+    // Store original form data to detect changes
+    let originalFormData = {};
+
+    // Load profile data from Firestore
+    async function loadProfile() {
+      try {
+        const user = await getCurrentUser();
+        const manufacturerDoc = await getDoc(doc(db, 'manufacturers', user.uid));
+        if (!manufacturerDoc.exists()) {
+          console.error("Manufacturer profile not found");
+          return;
+        }
+        const data = manufacturerDoc.data();
+        await populateProfileForm(data);
+
+        // Show company logo in both sidebar and profile form
+        const sidebarProfileImage = document.getElementById('sidebar-profile-image');
+        const logoPreview = document.getElementById('companyLogoPreview');
+        const companyNameDisplay = document.getElementById('companyNameDisplay');
+        if (sidebarProfileImage) {
+          sidebarProfileImage.src = data.companyLogo || '../assets/default-profile.png';
+        }
+        if (logoPreview) {
+          logoPreview.src = data.companyLogo || '../assets/default-profile.png';
+        }
+        if (companyNameDisplay) {
+          companyNameDisplay.textContent = data.businessName || '';
+        }
+
+        const sidebarGreeting = document.getElementById('sidebar-greeting');
+        if (sidebarGreeting) {
+          sidebarGreeting.textContent = `Hello, ${data.name ? data.name.split(' ')[0] : 'User'}!`;
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+      }
+    }
+
+    // Populate form with manufacturer data
+    async function populateProfileForm(data) {
+      // Personal Information
+      document.getElementById('profileName').value = data.name || '';
+      document.getElementById('profileMobile').value = data.mobileNumber || '';
+      document.getElementById('profileBusiness').value = data.businessName || '';
+      document.getElementById('profileGst').value = data.gstNumber || '';
+
+      // Location
+      await populateStates(data.state || '');
+      if (data.state) {
+        await populateDistricts(data.state, data.district || '');
+      }
+      document.getElementById('profileCity').value = data.city || '';
+      document.getElementById('profilePincode').value = data.pincode || '';
+      document.getElementById('profileCoordinates').value = data.coordinates || '';
+
+      // Monthly Requirement
+      document.getElementById('profileMonthlyRequirement').value = data.monthlyRequirement || '';
+
+      // Store original values to detect changes
+      originalFormData = {
+        name: document.getElementById('profileName').value,
+        mobileNumber: document.getElementById('profileMobile').value,
+        businessName: document.getElementById('profileBusiness').value,
+        gstNumber: document.getElementById('profileGst').value,
+        state: document.getElementById('profileState').value,
+        district: document.getElementById('profileDistrict').value,
+        city: document.getElementById('profileCity').value,
+        pincode: document.getElementById('profilePincode').value,
+        coordinates: document.getElementById('profileCoordinates').value,
+        monthlyRequirement: document.getElementById('profileMonthlyRequirement').value
+      };
+
+      // Disable save button initially
+      const saveButton = document.getElementById('profileSaveBtn');
+      if (saveButton) saveButton.disabled = true;
+
+      // Add change event listeners
+      setupFormChangeListeners();
+
+      // Display creation and update dates if available
+      const createdDateEl = document.getElementById('profile-created-date');
+      if (createdDateEl && data.createdAt) {
+        createdDateEl.textContent = new Date(data.createdAt).toLocaleDateString();
+      }
+
+      const updatedDateEl = document.getElementById('profile-updated-date');
+      if (updatedDateEl && data.updatedAt) {
+        updatedDateEl.textContent = new Date(data.updatedAt).toLocaleDateString();
+      }
+    }
+
+    // Check if form has changed to enable/disable save button
+    function checkFormChanged() {
+      const currentFormData = {
+        name: document.getElementById('profileName').value,
+        mobileNumber: document.getElementById('profileMobile').value,
+        businessName: document.getElementById('profileBusiness').value,
+        gstNumber: document.getElementById('profileGst').value,
+        state: document.getElementById('profileState').value,
+        district: document.getElementById('profileDistrict').value,
+        city: document.getElementById('profileCity').value,
+        pincode: document.getElementById('profilePincode').value,
+        coordinates: document.getElementById('profileCoordinates').value,
+        monthlyRequirement: document.getElementById('profileMonthlyRequirement').value
+      };
+
+      // Compare current with original
+      let hasChanged = false;
+
+      // Check string fields
+      const stringFields = ['name', 'mobileNumber', 'businessName', 'gstNumber',
+        'state', 'district', 'city', 'pincode', 'coordinates', 'monthlyRequirement'];
+
+      for (const field of stringFields) {
+        if (currentFormData[field] !== originalFormData[field]) {
+          hasChanged = true;
+          break;
+        }
+      }
+
+      // Enable/disable save button
+      const saveButton = document.getElementById('profileSaveBtn');
+      if (saveButton) saveButton.disabled = !hasChanged;
+
+      return hasChanged;
+    }
+
+    // Add change listeners to all form fields
+    function setupFormChangeListeners() {
+      const formElements = document.querySelectorAll('#profileForm input, #profileForm select, #profileForm textarea');
+      formElements.forEach(element => {
+        element.addEventListener('input', checkFormChanged);
+        element.addEventListener('change', checkFormChanged);
+      });
+    }
+
+    // Handle profile form submission
+    async function handleProfileSubmit(e) {
+      e.preventDefault();
+
+      const saveButton = document.getElementById('profileSaveBtn');
+      const messageContainer = document.getElementById('profile-message');
+
+      // Show loading state
+      saveButton.disabled = true;
+      saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+      messageContainer.className = "message-container";
+      messageContainer.textContent = "";
+
+      try {
+        const user = await getCurrentUser();
+
+        // Collect form data
+        const formData = {
+          name: document.getElementById('profileName').value,
+          mobileNumber: document.getElementById('profileMobile').value,
+          businessName: document.getElementById('profileBusiness').value,
+          gstNumber: document.getElementById('profileGst').value,
+          state: document.getElementById('profileState').value,
+          district: document.getElementById('profileDistrict').value,
+          city: document.getElementById('profileCity').value,
+          pincode: document.getElementById('profilePincode').value,
+          coordinates: document.getElementById('profileCoordinates').value || null,
+          monthlyRequirement: parseFloat(document.getElementById('profileMonthlyRequirement').value),
+          updatedAt: new Date().toISOString()
+        };
+
+        // Update Firestore
+        await updateDoc(doc(db, 'manufacturers', user.uid), formData);
+
+        // Also update users collection with basic info
+        await updateDoc(doc(db, 'users', user.uid), {
+          name: formData.name,
+          updatedAt: formData.updatedAt
+        });
+
+        // Show success message
+        messageContainer.className = "message-container success";
+        messageContainer.textContent = "Profile updated successfully!";
+
+        // Reload profile data
+        loadProfile();
+
+        // After updating Firestore and users collection, add:
+        await addDoc(collection(db, 'notifications'), {
+          userId: user.uid,
+          message: "Profile updated successfully!",
+          type: "profile",
+          createdAt: new Date().toISOString(),
+          read: false
+        });
+
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        messageContainer.className = "message-container error";
+        messageContainer.textContent = "Error updating profile: " + error.message;
+      } finally {
+        // Reset button state
+        saveButton.disabled = false;
+        saveButton.textContent = "Save Changes";
+
+        // Hide message after 5 seconds
+        setTimeout(() => {
+          if (messageContainer.className.includes("success")) {
+            messageContainer.className = "message-container";
+            messageContainer.textContent = "";
+          }
+        }, 5000);
+      }
+    }
+
+    // Handle form cancel button
+    function handleProfileCancel() {
+      // Show animation
+      const formSections = document.querySelectorAll('.form-section');
+      formSections.forEach(section => {
+        section.style.transition = 'all 0.3s ease';
+        section.style.transform = 'scale(0.98)';
+        section.style.opacity = '0.8';
+
+        setTimeout(() => {
+          section.style.transform = 'scale(1)';
+          section.style.opacity = '1';
+        }, 300);
+      });
+
+      // Reload original data
+      getCurrentUser().then(user => {
+        getDoc(doc(db, 'manufacturers', user.uid)).then(docSnap => {
+          if (docSnap.exists()) {
+            // Reset form with original data
+            populateProfileForm(docSnap.data());
+
+            // Show reset message
+            const messageContainer = document.getElementById('profile-message');
+            if (messageContainer) {
+              messageContainer.className = "message-container";
+              messageContainer.textContent = "Form has been reset to original values";
+              messageContainer.style.background = "#e3f2fd";
+              messageContainer.style.color = "#0d47a1";
+              messageContainer.style.border = "1px solid #bbdefb";
+              messageContainer.style.display = "block";
+
+              // Hide message after 3 seconds
+              setTimeout(() => {
+                messageContainer.style.display = "none";
+              }, 3000);
+            }
+          }
+        });
+      });
+    }
+
+    // Handle company logo upload
+    function setupCompanyLogoUpload() {
+      const logoInput = document.getElementById('companyLogoInput');
+      const logoPreview = document.getElementById('companyLogoPreview');
+      const logoContainer = document.getElementById('companyLogoContainer');
+
+      if (!logoInput || !logoPreview || !logoContainer) return;
+
+      // Create notification element
+      let notification = document.getElementById("logo-upload-notification");
+      if (!notification) {
+        notification = document.createElement("div");
+        notification.id = "logo-upload-notification";
+        notification.className = "upload-notification";
+        document.body.appendChild(notification);
+      }
+
+      logoInput.addEventListener("change", async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.match('image.*')) {
+          notification.className = "upload-notification error";
+          notification.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please select an image file';
+          notification.classList.add("show");
+          setTimeout(() => notification.classList.remove("show"), 3000);
+          return;
+        }
+
+        // Show loading state
+        if (logoPreview) logoPreview.style.opacity = "0.6";
+        logoContainer.innerHTML = '<div class="upload-loading"><i class="fas fa-spinner fa-spin"></i><span>Uploading...</span></div>';
+
+        try {
+          // Create preview before uploading
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            if (logoPreview) logoPreview.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+
+          // Compress the image
+          const compressedDataUrl = await compressImage(file, 0.7);
+          const size = getBase64Size(compressedDataUrl);
+
+          if (size > 700 * 1024) {
+            throw new Error("Image too large after compression (max 700KB)");
+          }
+
+          // Update Firestore
+          const user = await getCurrentUser();
+          await updateDoc(doc(db, 'manufacturers', user.uid), {
+            companyLogo: compressedDataUrl,
+            updatedAt: new Date().toISOString()
+          });
+
+          // Update users collection
+          await updateDoc(doc(db, 'users', user.uid), {
+            companyLogo: compressedDataUrl,
+            updatedAt: new Date().toISOString()
+          });
+
+          // Update sidebar logo
+          const sidebarProfileImage = document.getElementById('sidebar-profile-image');
+          if (sidebarProfileImage) {
+            sidebarProfileImage.src = compressedDataUrl;
+          }
+
+          // Success animation
+          if (logoPreview) {
+            logoPreview.classList.add("logo-success");
+            setTimeout(() => logoPreview.classList.remove("logo-success"), 1500);
+          }
+
+          // Success notification
+          notification.className = "upload-notification success";
+          notification.innerHTML = '<i class="fas fa-check-circle"></i> Company logo updated!';
+          notification.classList.add("show");
+          setTimeout(() => notification.classList.remove("show"), 3000);
+
+          // After updating Firestore and users collection, add:
+          await addDoc(collection(db, 'notifications'), {
+            userId: user.uid,
+            message: "Profile photo updated successfully!",
+            type: "profile-photo",
+            createdAt: new Date().toISOString(),
+            read: false
+          });
+
+        } catch (err) {
+          console.error("Error uploading logo:", err);
+
+          // Error notification
+          notification.className = "upload-notification error";
+          notification.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${err.message || "Upload failed"}`;
+          notification.classList.add("show");
+          setTimeout(() => notification.classList.remove("show"), 3000);
+
+          // Reset logo to original
+          const user = await getCurrentUser();
+          const manufacturerDoc = await getDoc(doc(db, 'manufacturers', user.uid));
+          if (manufacturerDoc.exists() && logoPreview) {
+            logoPreview.src = manufacturerDoc.data().companyLogo || "../assets/default-profile.png";
+          }
+        } finally {
+          // Reset UI
+          if (logoPreview) logoPreview.style.opacity = "1";
+          logoContainer.innerHTML = '';
+        }
+      });
+    }
+
+    // Image compression utility
+    function compressImage(file, quality = 0.7) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let [w, h] = [img.width, img.height];
+
+            // Resize if needed
+            if (w > 800 || h > 800) {
+              const ratio = Math.min(800 / w, 800 / h);
+              w = Math.floor(w * ratio);
+              h = Math.floor(h * ratio);
+            }
+
+            canvas.width = w;
+            canvas.height = h;
+            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function getBase64Size(base64) {
+      const b64 = base64.split(",")[1] || "";
+      return Math.ceil((b64.length * 3) / 4);
+    }
+
+    // Add these event listeners when the document is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      const profileForm = document.getElementById('profileForm');
+      if (profileForm) {
+        profileForm.addEventListener('submit', handleProfileSubmit);
+      }
+
+      const cancelBtn = document.getElementById('profileCancelBtn');
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', handleProfileCancel);
+      }
+
+      // Set up company logo upload
+      setupCompanyLogoUpload();
+
+      // Location utilities
+      const getLocationBtn = document.getElementById('profileGetLocationBtn');
+      if (getLocationBtn) {
+        getLocationBtn.addEventListener('click', () => {
+          const coordinatesInput = document.getElementById('profileCoordinates');
+          const statusElement = document.getElementById('coordinates-status');
+
+          statusElement.textContent = "Getting location...";
+
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              function (position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                coordinatesInput.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                statusElement.textContent = "Location fetched successfully";
+                statusElement.style.color = "green";
+                checkFormChanged(); // Check if form changed after setting coordinates
+              },
+              function (error) {
+                statusElement.textContent = `Error: ${error.message}`;
+                statusElement.style.color = "red";
+              }
+            );
+          } else {
+            statusElement.textContent = "Geolocation not supported by your browser";
+            statusElement.style.color = "red";
+          }
+        });
+      }
+
+      // State-district dropdowns
+      const stateSelect = document.getElementById('profileState');
+      if (stateSelect) {
+        stateSelect.addEventListener('change', async function () {
+          await populateDistricts(this.value);
+          checkFormChanged();
+        });
+      }
+    });
+
+    // Replace the sidebar navigation section at the bottom of your script tag with this code:
+    document.addEventListener('DOMContentLoaded', function () {
+      // Get all sidebar buttons and sections
+      const sidebarBtns = document.querySelectorAll(".sidebar-btn");
+      const sections = {
+        "overview": document.getElementById("overviewSection"),
+        "stubble-listing": document.getElementById("stubbleListingSection"),
+        "order-list": document.getElementById("orderListSection"),
+        "profile-edit": document.getElementById("profileEditSection"),
+        "notifications": document.getElementById("notificationsSection")
+      };
+
+      // Add click event to each sidebar button
+      sidebarBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          // Remove active class from all buttons
+          sidebarBtns.forEach((b) => b.classList.remove("active"));
+
+          // Add active class to clicked button
+          btn.classList.add("active");
+
+          // Hide all sections first
+          Object.values(sections).forEach((section) => {
+            if (section) section.classList.remove("active-section");
+          });
+
+          // Show the selected section
+          const sectionId = btn.getAttribute("data-section");
+          if (sections[sectionId]) {
+            sections[sectionId].classList.add("active-section");
+            console.log("Activated section:", sectionId);
+          } else {
+            console.error("Section not found:", sectionId);
+          }
+
+          // Close sidebar on mobile
+          if (window.innerWidth <= 900) closeSidebar();
+        });
+      });
+
+      // Set default active section (stubble listings)
+      const defaultBtn = document.querySelector('.sidebar-btn[data-section="stubble-listing"]');
+      if (defaultBtn) defaultBtn.click();
+    });
+
+    let stateDistrictData = {};
+
+    async function fetchStateDistrictData() {
+      if (Object.keys(stateDistrictData).length) return stateDistrictData;
+      const res = await fetch('../js/list.json');
+      stateDistrictData = await res.json();
+      return stateDistrictData;
+    }
+
+    async function populateStates(selectedState = '') {
+      const stateSelect = document.getElementById('profileState');
+      if (!stateSelect) return;
+      const data = await fetchStateDistrictData();
+      const states = Object.keys(data);
+      stateSelect.innerHTML = '<option value="">Select State</option>' +
+        states.map(state => `<option value="${state}"${state === selectedState ? ' selected' : ''}>${state}</option>`).join('');
+    }
+
+    async function populateDistricts(state, selectedDistrict = '') {
+      const districtSelect = document.getElementById('profileDistrict');
+      if (!districtSelect) return;
+      const data = await fetchStateDistrictData();
+      const districts = data[state] || [];
+      districtSelect.innerHTML = '<option value="">Select District</option>' +
+        districts.map(d => `<option value="${d}"${d === selectedDistrict ? ' selected' : ''}>${d}</option>`).join('');
+    }
+
+    // --- ORDER MODAL LOGIC ---
+    let orderModalState = {
+      stubble: null,
+      quantity: 0,
+      totalPrice: 0,
+      address: "",
+      pincode: ""
+    };
+
+    function showOrderModal(stub) {
+      orderModalState = { stubble: stub, quantity: 0, totalPrice: 0, address: "", pincode: "" };
+      document.getElementById('orderModal').style.display = 'flex';
+      showOrderModalStep(1);
+      document.getElementById('orderQuantityInput').value = '';
+    }
+
+    function closeOrderModal(confirm = true) {
+      if (confirm) {
+        if (window.confirm("Are you sure? Your order will be cancelled.")) {
+          document.getElementById('orderModal').style.display = 'none';
+        }
+      } else {
+        document.getElementById('orderModal').style.display = 'none';
+      }
+    }
+
+    function showOrderModalStep(step) {
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById('orderModalStep' + i).style.display = (i === step) ? 'flex' : 'none';
+      }
+    }
+
+    // Modal close/cancel logic
+    document.getElementById('orderModalClose').onclick = () => closeOrderModal(true);
+    document.getElementById('orderModalBackdrop').onclick = () => closeOrderModal(true);
+
+    // Step 1: Enter quantity
+    document.getElementById('orderStep1Next').onclick = () => {
+      const qty = parseFloat(document.getElementById('orderQuantityInput').value);
+      if (!qty || qty <= 0) return alert("Enter a valid quantity.");
+      if (qty > orderModalState.stubble.quantity) return alert("Requested quantity exceeds available stubble.");
+      orderModalState.quantity = qty;
+      orderModalState.totalPrice = qty * orderModalState.stubble.price;
+      document.getElementById('orderConfirmDetails').innerHTML = `
+        <div>Type: <b>${orderModalState.stubble.type}</b></div>
+        <div>Quantity: <b>${qty} tons</b></div>
+        <div>Price per ton: <b>₹${orderModalState.stubble.price}</b></div>
+        <div>Total: <b>₹${orderModalState.totalPrice}</b></div>
+      `;
+      showOrderModalStep(2);
+    };
+    document.getElementById('orderStep2Back').onclick = () => showOrderModalStep(1);
+
+    // Step 2: Confirm order
+    document.getElementById('orderStep2Next').onclick = () => {
+      // Pre-fill address if available
+      getCurrentUser().then(async user => {
+        const docSnap = await getDoc(doc(db, 'manufacturers', user.uid));
+        const data = docSnap.exists() ? docSnap.data() : {};
+        document.getElementById('orderAddressInput').value = data.city || '';
+        document.getElementById('orderPincodeInput').value = data.pincode || '';
+        showOrderModalStep(3);
+      });
+    };
+
+    // Step 3: Enter address and simulate payment
+    document.getElementById('orderStep3Next').onclick = async () => {
+      const address = document.getElementById('orderAddressInput').value.trim();
+      const pincode = document.getElementById('orderPincodeInput').value.trim();
+      if (!address || !pincode) return alert("Please enter address and pincode.");
+      orderModalState.address = address;
+      orderModalState.pincode = pincode;
+
+      // Simulate payment
+      if (window.confirm(`Simulate payment of ₹${orderModalState.totalPrice}? Click OK to proceed.`)) {
+        // Place order in Firestore
+        const user = await getCurrentUser();
+        const stubbleRef = doc(db, 'stubble', orderModalState.stubble.id);
+        const stubbleDoc = await getDoc(stubbleRef);
+        if (!stubbleDoc.exists()) return alert('Stubble not found!');
+        const stubble = stubbleDoc.data();
+
+        // Check again for available quantity
+        if (orderModalState.quantity > stubble.quantity) {
+          alert('Requested quantity exceeds available stubble.');
+          closeOrderModal(false);
+          return;
+        }
+
+        // Create order
+        const orderData = {
+          manufacturerId: user.uid,
+          farmerId: stubble.farmerId,
+          stubbleId: orderModalState.stubble.id,
+          quantity: orderModalState.quantity,
+          price: orderModalState.totalPrice,
+          status: 'placed',
+          address: orderModalState.address,
+          pincode: orderModalState.pincode,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        const orderId = generateOrderId(5);
+        const orderRef = doc(db, 'orders', orderId);
+        await setDoc(orderRef, orderData);
+
+        // Update stubble listing: reduce quantity or mark unavailable
+        let newQty = stubble.quantity - orderModalState.quantity;
+        let newStatus = newQty > 0 ? 'available' : 'completed';
+        if (isNaN(newQty) || newQty < 0) newQty = 0; // Defensive
+
+        await updateDoc(stubbleRef, {
+          quantity: newQty,
+          status: newStatus
+        });
+
+        // Also update in stubble_listings if you have that collection
+        const stubbleListingRef = doc(db, 'stubble_listings', orderModalState.stubble.id);
+        const stubbleListingDoc = await getDoc(stubbleListingRef);
+        if (stubbleListingDoc.exists()) {
+          await updateDoc(stubbleListingRef, {
+            quantity: newQty,
+            status: newStatus
+          });
+        }
+
+        // --- Update in farmer's subcollection ---
+        const farmerStubbleRef = doc(db, 'farmers', stubble.farmerId, 'stubble', orderModalState.stubble.id);
+        const farmerStubbleDoc = await getDoc(farmerStubbleRef);
+        if (farmerStubbleDoc.exists()) {
+          await updateDoc(farmerStubbleRef, {
+            quantity: newQty,
+            status: newStatus
+          });
+        }
+
+        // --- Send notification to farmer's notifications subcollection ---
+        const farmerNotifRef = collection(db, "farmers", stubble.farmerId, "notifications");
+        await addDoc(farmerNotifRef, {
+          message: `You have a new order for your stubble (Order ID: ${orderRef.id})`,
+          timestamp: new Date().toISOString(),
+          read: false
+        });
+
+        // --- Send notification to manufacturer (optional, already present) ---
+        await Promise.all([
+          addDoc(collection(db, 'notifications'), {
+            userId: stubble.farmerId,
+            message: `Your stubble has been ordered (Order ID: ${orderRef.id})`,
+            type: 'order',
+            createdAt: new Date().toISOString(),
+            read: false
+          }),
+          addDoc(collection(db, 'notifications'), {
+            userId: user.uid,
+            message: `Order placed successfully! Order ID: ${orderRef.id}`,
+            type: 'order',
+            createdAt: new Date().toISOString(),
+            read: false
+          })
+        ]);
+
+        showOrderModalStep(4);
+        loadOverviewStats();
+        loadStubbleListings();
+        loadOrders();
+      }
+    };
+    document.getElementById('orderStep3Back').onclick = () => showOrderModalStep(2);
+
+    // Step 4: Close after success
+    document.getElementById('orderStep4Close').onclick = () => closeOrderModal(false);
+
+    // --- Attach modal to "Order Now" buttons ---
+    function attachOrderNowButtons() {
+      document.querySelectorAll('.order-btn').forEach(btn => {
+        btn.onclick = function () {
+          const stubbleId = btn.getAttribute('data-id');
+          // Find the stubble object from the last loaded stubbles
+          const stub = window.lastLoadedStubbles?.find(s => s.id === stubbleId);
+          if (stub) showOrderModal(stub);
+        };
+      });
+    }
+
+    // --- Listen for orders for this farmer ---
+    function listenToFarmerOrders(farmerId) {
+      const ordersRef = collection(db, "orders");
+      const q = query(ordersRef, where("farmerId", "==", farmerId));
+      onSnapshot(q, async (snapshot) => {
+        const orders = [];
+        snapshot.forEach(docSnap => {
+          orders.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        updateFarmerOrdersUI(orders);
+        updateFarmerOverviewAndChart(orders);
+      });
+    }
+
+    function updateFarmerOrdersUI(orders) {
+      const ordersSection = document.getElementById("section-orders");
+      if (!ordersSection) return;
+      let html = `
+        <h2>Orders</h2>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Stubble Type</th>
+              <th>Quantity (tons)</th>
+              <th>Price (₹)</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      if (orders.length === 0) {
+        html += `<tr><td colspan="7" style="text-align:center;">No orders yet.</td></tr>`;
+      } else {
+        for (const order of orders) {
+          html += `
+            <tr>
+              <td>${order.id}</td>
+              <td>${order.stubbleType || ""}</td>
+              <td>${order.quantity}</td>
+              <td>${order.price}</td>
+              <td>${order.status}</td>
+              <td>${order.manufacturerId}</td>
+              <td>${new Date(order.createdAt).toLocaleString()}</td>
+            </tr>
+          `;
+        }
+      }
+      html += `</tbody></table>`;
+      ordersSection.innerHTML = html;
+    }
+
+    function updateFarmerOverviewAndChart(orders) {
+      // Calculate totals
+      let totalSold = 0, totalEarnings = 0, totalOrders = orders.length;
+      const dateMap = {};
+
+      orders.forEach(order => {
+        if (order.status === "placed" || order.status === "completed") {
+          totalSold += order.quantity || 0;
+          totalEarnings += order.price || 0;
+          const date = new Date(order.createdAt).toLocaleDateString();
+          dateMap[date] = (dateMap[date] || 0) + (order.price || 0);
+        }
+      });
+
+      // Update overview cards
+      document.getElementById("total-stubble-sold").textContent = totalSold;
+      document.getElementById("total-earnings").textContent = `₹${totalEarnings}`;
+      document.getElementById("total-orders").textContent = totalOrders;
+
+      // Update chart
+      const ctx = document.getElementById('transactions-chart').getContext('2d');
+      if (window.transactionChart) window.transactionChart.destroy();
+      window.transactionChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(dateMap),
+          datasets: [{
+            label: 'Earnings (₹)',
+            data: Object.values(dateMap),
+            backgroundColor: 'rgba(76, 175, 80, 0.6)',
+            borderColor: 'rgba(76, 175, 80, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    // In your onAuthStateChanged(auth, ...) block, add:
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // ...existing code...
+        listenToFarmerOrders(user.uid);
+        loadStubbleBatch(user.uid, true);
+        setupStubbleInfiniteScroll(user.uid);
+      }
+    });
+
+    function listenToStubbleUploads(farmerId) {
+      const farmerRef = doc(db, "farmers", farmerId);
+      const stubbleCol = collection(farmerRef, "stubble");
+      let stubbleFirstLoad = true;
+
+      onSnapshot(stubbleCol, (snap) => {
+        const stubbleList = document.getElementById("stubble-list");
+        if (stubbleFirstLoad) {
+          stubbleList.innerHTML = "<div>Loading...</div>";
+        }
+
+        const stubbleArray = [];
+        snap.forEach(docSnap => {
+          const stubble = docSnap.data();
+          stubbleArray.push(stubble);
+        });
+
+        // --- REPLACE THIS BLOCK ---
+        if (stubbleFirstLoad) {
+          stubbleFirstLoad = false;
+          if (stubbleArray.length === 0) {
+            stubbleList.innerHTML = `
+              <div style="padding:32px 0;text-align:center;color:#888;font-size:1.2em;">
+                <i class="fas fa-leaf" style="font-size:2em;color:#bdbdbd;margin-bottom:8px;"></i><br>
+                <b>No stubble available for sale at the moment.</b>
+                <div style="margin-top:8px;font-size:0.95em;">Upload new stubble to get started!</div>
+              </div>
+            `;
+            renderTransactionChart([]);
+            const totalAvailableEl = document.getElementById("total-stubble-available");
+            if (totalAvailableEl) totalAvailableEl.textContent = 0;
+            return;
+          }
+        }
+        // --- END REPLACE ---
+
+        // ...rest of your function...
+      });
+    }
+
+    let stubbleLastVisible = null;
+    let stubbleLoading = false;
+    let stubbleEndReached = false;
+    let stubbleListArray = [];
+
+    async function loadStubbleBatch(farmerId, reset = false) {
+      if (stubbleLoading || stubbleEndReached) return;
+      stubbleLoading = true;
+
+      const stubbleList = document.getElementById("stubble-list");
+      if (reset) {
+        stubbleList.innerHTML = "<div>Loading...</div>";
+        stubbleLastVisible = null;
+        stubbleEndReached = false;
+        stubbleListArray = [];
+      }
+
+      const farmerRef = doc(db, "farmers", farmerId);
+      let stubbleQuery = query(
+        collection(farmerRef, "stubble"),
+        orderBy("uploadTimestamp", "desc"),
+        limit(2)
+      );
+      if (stubbleLastVisible) {
+        stubbleQuery = query(
+          collection(farmerRef, "stubble"),
+          orderBy("uploadTimestamp", "desc"),
+          startAfter(stubbleLastVisible),
+          limit(2)
+        );
+      }
+
+      const snap = await getDocs(stubbleQuery);
+
+      if (reset) stubbleList.innerHTML = "";
+
+      if (snap.empty) {
+        if (reset) {
+          stubbleList.innerHTML = `
+            <div style="padding:32px 0;text-align:center;color:#888;font-size:1.2em;">
+              <i class="fas fa-leaf" style="font-size:2em;color:#bdbdbd;margin-bottom:8px;"></i><br>
+              <b>No stubble available for sale at the moment.</b>
+              <div style="margin-top:8px;font-size:0.95em;">Upload new stubble to get started!</div>
+            </div>
+          `;
+        }
+        stubbleEndReached = true;
+        stubbleLoading = false;
+        return;
+      }
+
+      let lastDoc = null;
+      snap.forEach(docSnap => {
+        const stubble = docSnap.data();
+        stubbleListArray.push(stubble);
+        lastDoc = docSnap;
+        const div = document.createElement("div");
+        div.className = "stubble-item";
+        div.innerHTML = `
+          <h4>${stubble.type} (${stubble.quantity} tons)</h4>
+          <p>Price: ₹${stubble.price} per ton</p>
+          <p>Status: <span class="stubble-status">${stubble.status}</span></p>
+          <div style="display:flex;gap:8px;">
+            ${stubble.images && stubble.images.length ? stubble.images.map(img => `<img src="${img}" style="width:40px;height:40px;border-radius:4px;object-fit:cover;">`).join('') : ""}
+          </div>
+          <button class="remove-stubble" data-id="${stubble.stubbleId || ''}">Remove</button>
+        `;
+        stubbleList.appendChild(div);
+      });
+
+      stubbleLastVisible = lastDoc;
+
+      if (snap.size < 2) {
+        stubbleEndReached = true;
+      }
+
+      // Update available stubble
+      const totalAvailable = stubbleListArray
+        .filter(stubble => (stubble.status || '').toLowerCase().trim() === "available")
+        .reduce((sum, stubble) => sum + (parseFloat(stubble.quantity) || 0), 0);
+      const totalAvailableEl = document.getElementById("total-stubble-available");
+      if (totalAvailableEl) totalAvailableEl.textContent = totalAvailable;
+
+      stubbleLoading = false;
+    }
+
+    function setupStubbleInfiniteScroll(farmerId) {
+      const stubbleSection = document.getElementById("section-stubble");
+      const stubbleList = document.getElementById("stubble-list");
+
+      // Listen for scroll on the stubble section
+      stubbleSection.addEventListener("scroll", function () {
+        // If near the bottom, load more
+        if (
+          stubbleSection.scrollTop + stubbleSection.clientHeight >=
+          stubbleSection.scrollHeight - 50
+        ) {
+          loadStubbleBatch(farmerId, false);
+        }
+      });
+
+      // Also listen for window scroll (for mobile/full-page scroll)
+      window.addEventListener("scroll", function () {
+        // Only if stubble section is visible
+        if (stubbleSection.style.display !== "none") {
+          const rect = stubbleList.getBoundingClientRect();
+          if (rect.bottom <= window.innerHeight + 50) {
+            loadStubbleBatch(farmerId, false);
+          }
+        }
+      });
+    }
+
+    function generateOrderId(length = 5) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+  </script>
+
+  <script type="module" src="../js/manufacturer-dashboard.js"></script>
+</body>
+
+</html>
